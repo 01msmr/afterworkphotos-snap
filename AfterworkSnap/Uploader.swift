@@ -20,10 +20,14 @@ enum Uploader {
         let name = try Filename.from(jpeg: jpeg)
         let request = UploadRequest.build(jpeg: jpeg, secret: secret, filename: name, endpoint: endpoint)
         let (body, response) = try await URLSession.shared.data(for: request)
-        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        let http = response as? HTTPURLResponse
+        let code = http?.statusCode ?? 0
         guard code == 200 || code == 201 else {
+            // Only the endpoint's own one-line answers are shown; anything
+            // else (a host's HTML error page) is just its status code.
             let text = String(decoding: body, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-            throw UploadError.refused(text.isEmpty ? "Server answered \(code)." : text)
+            let plain = (http?.value(forHTTPHeaderField: "Content-Type") ?? "").hasPrefix("text/plain")
+            throw UploadError.refused(plain && !text.isEmpty && text.count <= 120 ? text : "Server answered \(code).")
         }
     }
 }
