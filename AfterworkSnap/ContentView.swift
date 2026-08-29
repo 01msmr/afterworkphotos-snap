@@ -21,8 +21,6 @@ struct ContentView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(.white)
 
-                Spacer()
-
                 controls
                     .padding(.bottom, 32)
             }
@@ -32,6 +30,7 @@ struct ContentView: View {
         }
         .background(Color.black)
         .ignoresSafeArea()
+        .preferredColorScheme(.dark)
         .onAppear { model.start() }
         .onDisappear { model.stop() }
     }
@@ -56,6 +55,7 @@ struct ContentView: View {
                 }
                 .font(.system(size: 17, weight: .medium))
             }
+            .frame(maxHeight: .infinity, alignment: .bottom)
         case .saving, .sending:
             ProgressView().tint(.white).frame(maxWidth: .infinity)
         case .sent:

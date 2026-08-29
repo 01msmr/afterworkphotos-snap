@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 
 enum CaptureError: LocalizedError {
     case noCamera, cannotConfigure, noData
@@ -13,7 +13,7 @@ enum CaptureError: LocalizedError {
 
 /// Plain AVCaptureSession: no flash, no deferred delivery, no depth or mattes.
 /// Those are Camera.app features, not system behaviour.
-final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate {
+nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
     let session = AVCaptureSession()
     private let output = AVCapturePhotoOutput()
     private let queue = DispatchQueue(label: "snap.session")

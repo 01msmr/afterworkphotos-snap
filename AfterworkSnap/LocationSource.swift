@@ -3,7 +3,7 @@ import SnapCore
 
 /// Runs while the viewfinder is live; hands out the latest fix as plain
 /// numbers, or nil when there is none good enough.
-final class LocationSource: NSObject, CLLocationManagerDelegate {
+nonisolated final class LocationSource: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var latest: CLLocation?
 

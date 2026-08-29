@@ -17,10 +17,13 @@ final class AppModel {
     let camera = SnapSession()
     private let location = LocationSource()
     private var saved = false
+    private var configured = false
 
     func start() {
+        guard !configured else { camera.start(); location.start(); return }
         Secret.seedIfNeeded()
         do { try camera.configure() } catch { phase = .failed(error.localizedDescription); return }
+        configured = true
         camera.start()
         location.start()
     }
