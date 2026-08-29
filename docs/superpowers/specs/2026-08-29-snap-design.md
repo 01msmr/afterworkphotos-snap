@@ -1,8 +1,27 @@
 # afterworkphotos-snap — design
 
-Date: 2026-08-29. Status: **designed, nothing built.** The repo is empty; this
-document is the contract the app and the endpoint keep with each other and
-with `scripts/ingest.sh` in the photos repo.
+Date: 2026-08-29. Status: **built and live** (same day): the first photo went
+phone → `snap.afterworkphotos.com` → `inbox/` → afterworkphotos.com as
+`awp-2026-08-29-01`, place resolved from the phone's GPS. This document is the
+contract the app and the endpoint keep with each other and with
+`scripts/ingest.sh` in the photos repo. Departures from the design as built:
+
+- Title reads `snap.afterworkphotos` — `snap` in the site's link blue, the
+  rest white — in a 44 pt band above the square (the site's phone title
+  band), 12 pt below the status inset; side margins 4 % of the width. The
+  spec's "title beneath the square" is superseded.
+- Buttons are standard iOS: bordered `discard`, green filled `save`/`retry`.
+- The app shows only the endpoint's own one-line answers; any other reply
+  (a host's HTML error page) is shown as `Server answered <code>.`
+- App icon: photo `awp-2015-07-27-01` with a viewfinder frame at 66 %.
+- Xcode 26 nests a new project one level deep and creates its own git repo;
+  both were undone by hand. The project must be opened with Xcode-beta 27
+  (iOS 27 SDK) for a phone on iOS 27.
+- Two fixes landed in the photos repo on the way: `ingest.sh` now creates
+  `img originals/` (absent on the runner; the first already-square arrival
+  is moved straight into it), and names an Anthropic API error in the run
+  log instead of failing silently. The caption line keeps the name at the
+  right when there is no description.
 
 ## What this is
 
