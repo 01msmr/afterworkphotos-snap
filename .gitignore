@@ -1,0 +1,6 @@
+.DS_Store
+xcuserdata/
+DerivedData/
+.build/
+AfterworkSnap/Secrets.xcconfig
+snap-secret.php
