@@ -13,9 +13,10 @@ struct ContentView: View {
             let side = geo.size.width * 0.04
             let square = geo.size.width - 2 * side
             VStack(alignment: .trailing, spacing: 0) {
-                Text("snap.afterworkphotos")
+                // the site's title link colour (CSS blue) for "snap"
+                (Text("snap").foregroundStyle(Color(red: 0, green: 0, blue: 1))
+                 + Text(".afterworkphotos").foregroundStyle(.white))
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
                     .frame(height: titleBand)
 
                 ZStack {
