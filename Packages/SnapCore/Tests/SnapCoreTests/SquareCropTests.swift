@@ -72,4 +72,10 @@ import ImageIO
         #expect(exif?[kCGImagePropertyExifPixelXDimension] as? Int == 3024)
         #expect(exif?[kCGImagePropertyExifPixelYDimension] as? Int == 3024)
     }
+
+    @Test func pngInComesOutAsJpeg() throws {
+        let png = TestJPEG.make(width: 40, height: 30, type: .png)
+        let out = try SquareCrop.centered(in: png)
+        #expect(out.prefix(3) == Data([0xFF, 0xD8, 0xFF]))
+    }
 }
