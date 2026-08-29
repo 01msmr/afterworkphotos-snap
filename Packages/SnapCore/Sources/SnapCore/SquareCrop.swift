@@ -20,7 +20,16 @@ public enum SquareCrop {
         guard let dest = CGImageDestinationCreateWithData(out, UTType.jpeg.identifier as CFString, 1, nil) else {
             throw SnapError.encodeFailed
         }
-        CGImageDestinationAddImage(dest, cropped, nil)
+        var props = (CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]) ?? [:]
+        props[kCGImagePropertyPixelWidth] = side
+        props[kCGImagePropertyPixelHeight] = side
+        var exif = (props[kCGImagePropertyExifDictionary] as? [CFString: Any]) ?? [:]
+        exif[kCGImagePropertyExifPixelXDimension] = side
+        exif[kCGImagePropertyExifPixelYDimension] = side
+        props[kCGImagePropertyExifDictionary] = exif
+        props[kCGImageDestinationLossyCompressionQuality] = 0.95
+
+        CGImageDestinationAddImage(dest, cropped, props as CFDictionary)
         guard CGImageDestinationFinalize(dest) else { throw SnapError.encodeFailed }
         return out as Data
     }
