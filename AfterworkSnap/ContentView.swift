@@ -1,13 +1,23 @@
 import SwiftUI
 
+/// The site's phone layout, in points: a band of fixed height below the
+/// status inset holds the title at the right; the square starts at the
+/// band's foot; side margins are 4 % of the width.
 struct ContentView: View {
     @State private var model = AppModel()
-    private let side: CGFloat = 24     // equal side margins around the square
+    private let topGap: CGFloat = 12
+    private let titleBand: CGFloat = 44
 
     var body: some View {
         GeometryReader { geo in
+            let side = geo.size.width * 0.04
             let square = geo.size.width - 2 * side
-            VStack(alignment: .trailing, spacing: 8) {
+            VStack(alignment: .trailing, spacing: 0) {
+                Text("snap.afterworkphotos")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(height: titleBand)
+
                 ZStack {
                     PreviewView(session: model.camera.session)
                     if let data = model.square, let image = UIImage(data: data) {
@@ -17,19 +27,15 @@ struct ContentView: View {
                 .frame(width: square, height: square)
                 .clipped()
 
-                Text("afterworksnap")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(.white)
-
                 controls
-                    .padding(.bottom, 32)
+                    .padding(.top, 24)
+                    .padding(.bottom, 16)
             }
             .padding(.horizontal, side)
-            .padding(.top, geo.safeAreaInsets.top + 16)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.top, topGap)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(Color.black)
-        .ignoresSafeArea()
+        .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .onAppear { model.start() }
         .onDisappear { model.stop() }
@@ -49,11 +55,15 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 HStack {
-                    Button("discard") { model.discard() }.tint(.white)
+                    Button("discard") { model.discard() }
+                        .buttonStyle(.bordered)
+                        .tint(.white)
                     Spacer()
-                    Button(retryOrSave) { model.confirm() }.tint(.green)
+                    Button(retryOrSave) { model.confirm() }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
                 }
-                .font(.system(size: 17, weight: .medium))
+                .controlSize(.large)
             }
             .frame(maxHeight: .infinity, alignment: .bottom)
         case .saving, .sending:
