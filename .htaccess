@@ -1,0 +1,9 @@
+CGIPassAuth On
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+<Files "snap-secret.php">
+    Require all denied
+</Files>
+<Files "snap-secret.example.php">
+    Require all denied
+</Files>
