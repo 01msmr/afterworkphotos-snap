@@ -78,4 +78,21 @@ import ImageIO
         let out = try SquareCrop.centered(in: png)
         #expect(out.prefix(3) == Data([0xFF, 0xD8, 0xFF]))
     }
+
+    @Test func gpsGivenAtCropIsWritten() throws {
+        let input = TestJPEG.make(width: 40, height: 30)
+        let gps = GPSDictionary.make(latitude: -33.87, longitude: -70.65)
+        let p = TestJPEG.properties(of: try SquareCrop.centered(in: input, gps: gps))
+        let out = try #require(p[kCGImagePropertyGPSDictionary] as? [CFString: Any])
+        #expect(out[kCGImagePropertyGPSLatitudeRef] as? String == "S")
+        #expect(out[kCGImagePropertyGPSLongitudeRef] as? String == "W")
+        #expect(abs((out[kCGImagePropertyGPSLatitude] as! Double) - 33.87) < 0.0001)
+        #expect(abs((out[kCGImagePropertyGPSLongitude] as! Double) - 70.65) < 0.0001)
+    }
+
+    @Test func noGpsGivenWritesNone() throws {
+        let input = TestJPEG.make(width: 40, height: 30)
+        let p = TestJPEG.properties(of: try SquareCrop.centered(in: input))
+        #expect(p[kCGImagePropertyGPSDictionary] == nil)
+    }
 }

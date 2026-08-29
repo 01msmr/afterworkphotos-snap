@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 public enum SquareCrop {
     /// Centre-crops to a square in raw pixel space, leaving the orientation
     /// tag alone: a centred square is invariant under 90° rotation.
-    public static func centered(in data: Data) throws -> Data {
+    public static func centered(in data: Data, gps: [CFString: Any]? = nil) throws -> Data {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             throw SnapError.decodeFailed
@@ -27,6 +27,7 @@ public enum SquareCrop {
         exif[kCGImagePropertyExifPixelXDimension] = side
         exif[kCGImagePropertyExifPixelYDimension] = side
         props[kCGImagePropertyExifDictionary] = exif
+        if let gps { props[kCGImagePropertyGPSDictionary] = gps }
         props[kCGImageDestinationLossyCompressionQuality] = 0.95
 
         CGImageDestinationAddImage(dest, cropped, props as CFDictionary)
