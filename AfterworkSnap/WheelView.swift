@@ -33,7 +33,7 @@ struct WheelView: View {
             Button(action: { if enabled { onCenter() } }) {
                 Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")   // the rotate-arrows glyph
                     .font(.system(size: size * 0.22, weight: .bold))
-                    .foregroundStyle(enabled ? Color(white: 0.45) : Color(white: 0.6))
+                    .foregroundStyle(enabled ? Theme.titleBlue : Color(white: 0.48))
                     .frame(width: centre, height: centre)
                     .modifier(Dome(radius: centre / 2))
             }
