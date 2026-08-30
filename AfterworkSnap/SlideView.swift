@@ -8,15 +8,17 @@ import SwiftUI
 /// swapped between `.leading` and `.trailing` depending on `mirrored`, so
 /// the label text is never drawn backwards.
 ///
-/// Two labels, both always drawn — nothing is ever hidden by opacity, so
-/// nothing can be seen to move or fade on the first drag:
-///  - Label A sits fixed at the outer end, always visible; the knob may
-///    slide over it near the end of travel (it's drawn on top).
+/// Two labels, both always drawn — nothing is ever hidden by opacity
+/// anywhere, only by masks tied to real geometry:
+///  - Label A sits fixed at the outer end. It's masked by the rectangle
+///    from the knob's leading edge (the edge facing the outer end) to the
+///    outer end of the track — so as the knob slides outward it wipes
+///    label A away letter by letter, and reveals it again on the way back.
 ///  - Label B is the same word, fixed 16 pt from the inner end (the same
-///    position the old "sliding" label held), but masked by a rectangle
-///    with exactly the colour fill's own geometry — at rest the fill (and
-///    so the mask) is zero-width, so nothing of it shows; it's revealed
-///    as the fill grows, in lockstep, never independently of it.
+///    position the old "sliding" label held), masked by a rectangle with
+///    exactly the colour fill's own geometry — at rest the fill (and so
+///    the mask) is zero-width, so nothing of it shows; it's revealed as
+///    the fill grows, in lockstep, never independently of it.
 /// Both labels carry `.transaction { $0.animation = nil }` so neither the
 /// knob's spring snap-back nor a label text change (POST ↔ RETRY) can
 /// animate them. The knob is drawn last, so it stays above both labels.
@@ -41,6 +43,11 @@ struct SlideView: View {
         // The colour fill's own geometry — label B's mask uses exactly this,
         // so it can only ever show through where the fill already is.
         let fillWidth: CGFloat = (enabled && offset > 0) ? metrics.pt(4) + offset + k / 2 : 0
+        // The knob's own leading (outer-facing) edge, as a distance from
+        // the rest edge — label A's mask is the strip from there to the
+        // outer end, so the knob's advance is what wipes it away.
+        let knobLeadingEdge = metrics.pt(4) + offset + k
+        let labelAMaskWidth = max(0, w - knobLeadingEdge)
 
         ZStack(alignment: restAlign) {
             Capsule().fill(Theme.track)
@@ -49,10 +56,12 @@ struct SlideView: View {
             if fillWidth > 0 {
                 Rectangle().fill(colour).frame(width: fillWidth).clipShape(Capsule())
             }
-            // Label A: fixed at the outer end, always visible.
+            // Label A: fixed at the outer end, masked by the untravelled strip
+            // between the knob's leading edge and the outer end.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: farAlign)
                 .padding(farEdge, metrics.labelInset)
+                .mask(alignment: farAlign) { Rectangle().frame(width: labelAMaskWidth) }
                 .transaction { $0.animation = nil }
             // Label B: fixed 16 pt from the inner end, masked by the fill's
             // own geometry — revealed exactly as the fill grows over it.

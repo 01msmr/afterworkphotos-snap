@@ -137,6 +137,16 @@ final class AppModel {
         return true
     }
 
+    /// The drum's own selection — sets the index directly (clamped) rather
+    /// than by a relative delta.
+    func select(_ i: Int) {
+        guard !names.isEmpty else { return }
+        let clamped = min(max(i, 0), names.count - 1)
+        guard clamped != nameIndex else { return }
+        nameIndex = clamped
+        showIndex = true
+    }
+
     func retake() {
         namingTask?.cancel(); namingTask = nil; naming = false
         placeTask?.cancel(); placeTask = nil

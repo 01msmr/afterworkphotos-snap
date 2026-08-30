@@ -1,7 +1,14 @@
 import SwiftUI
 
-/// The red release: flat, iOS 26 glass style — not domed. `breathing`: the
-/// dark layer fades in and out, 1.6 s each way. `locked`: greyed and inert.
+/// The red release: flat, iOS 26 glass style — not domed.
+///
+/// `locked`'s "dimmed" look isn't a filter — it's a flat colour swap: the
+/// base is drawn in `Theme.redDark` when locked, `Theme.shutterMid`
+/// otherwise, so a locked shutter and the breathing floor read as the
+/// same colour. While `breathing`, the *other* colour pulses on top —
+/// inverted when locked (starts fully opaque and fades to 0, so a fresh
+/// tap still reads bright red for an instant before settling into the
+/// breathing dark).
 struct ShutterButton: View {
     let size: CGFloat
     let metrics: Metrics
@@ -10,14 +17,17 @@ struct ShutterButton: View {
     let action: () -> Void
     @State private var lit = false
 
-    /// `opaque`: the flat fallback needs a fully opaque red; under the
-    /// iOS 26 glass effect a mostly-opaque base keeps it reading as red
-    /// rather than washed-out pink, while the tinted glass still shows.
+    private var restColour: Color { locked ? Theme.redDark : Theme.shutterMid }
+    private var pulseColour: Color { locked ? Theme.shutterMid : Theme.redDark }
+
+    /// `opaque`: the flat fallback needs a fully opaque rest colour; under
+    /// the iOS 26 glass effect a mostly-opaque base keeps it reading as
+    /// red rather than washed-out pink, while the tinted glass still shows.
     private func base(opaque: Bool) -> some View {
         ZStack {
-            Circle().fill(Theme.shutterMid.opacity(opaque ? 1 : 0.85))
-            Circle().fill(Theme.breathTop)
-                .opacity(lit ? 1 : 0)
+            Circle().fill(restColour.opacity(opaque ? 1 : 0.85))
+            Circle().fill(pulseColour)
+                .opacity(locked ? (lit ? 0 : 1) : (lit ? 1 : 0))
                 .animation(breathing ? .easeInOut(duration: 1.6).repeatForever(autoreverses: true) : .linear(duration: 0.2), value: lit)
         }
     }
@@ -28,10 +38,11 @@ struct ShutterButton: View {
             Group {
                 if #available(iOS 26, *) {
                     // Liquid Glass: a clear (not regular) glass, lightly
-                    // tinted, over an already mostly-opaque red base — a
-                    // clearly red, flat, glassy disc, not translucent pink.
+                    // tinted with the current rest colour, over an already
+                    // mostly-opaque base — a clearly red, flat, glassy
+                    // disc, not translucent pink.
                     base(opaque: false)
-                        .glassEffect(.clear.tint(Theme.shutterMid.opacity(0.5)).interactive(), in: .circle)
+                        .glassEffect(.clear.tint(restColour.opacity(0.5)).interactive(), in: .circle)
                         .overlay(
                             Circle().fill(LinearGradient(colors: [.white.opacity(0.35), .clear], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.4)))
                         )
@@ -42,8 +53,6 @@ struct ShutterButton: View {
                 }
             }
             .shadow(color: .black.opacity(0.35), radius: 6 * s, y: 3 * s)
-            .saturation(locked ? 0.25 : 1)
-            .brightness(locked ? -0.25 : 0)
         }
         .buttonStyle(.plain)
         .frame(width: size, height: size)

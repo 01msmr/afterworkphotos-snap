@@ -4,6 +4,7 @@ import SnapCore
 struct ContentView: View {
     @State private var model = AppModel()
     @Environment(\.colorScheme) private var scheme
+    @AppStorage("panelOnLeft") private var panelOnLeft = false
 
     var body: some View {
         GeometryReader { geo in
@@ -11,6 +12,8 @@ struct ContentView: View {
             let side = m.side
             let printSide = m.printSide
             let lang = model.language
+            let panelOffsetY = (m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12)   // bottom edge 12 above the LCD
+            let sideGap = max(0, (geo.size.width - m.shutter) / 2)               // screen edge → shutter, one side
             ZStack(alignment: .top) {
                 Leather(metrics: m)
                 VStack(spacing: 0) {
@@ -48,11 +51,39 @@ struct ContentView: View {
                     LogoView(size: m.logoSize).padding(.top, m.gapLogo)
                     ZStack {
                         ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
-                        HStack { Spacer()
-                            ControlPanel(size: m.wheel, enabled: model.controlsEnabled, metrics: m, onStep: { model.step($0) }, onCenter: { model.fetchNames() })
-                                .padding(.trailing, side)
+                        HStack {
+                            if panelOnLeft {
+                                ControlPanel(count: model.names.count,
+                                             selection: Binding(get: { model.nameIndex }, set: { model.select($0) }),
+                                             enabled: model.controlsEnabled, metrics: m, mirrored: true,
+                                             onCenter: { model.fetchNames() })
+                                    .padding(.leading, side)
+                                Spacer()
+                            } else {
+                                Spacer()
+                                ControlPanel(count: model.names.count,
+                                             selection: Binding(get: { model.nameIndex }, set: { model.select($0) }),
+                                             enabled: model.controlsEnabled, metrics: m, mirrored: false,
+                                             onCenter: { model.fetchNames() })
+                                    .padding(.trailing, side)
+                            }
                         }
-                        .offset(y: (m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12))   // bottom edge 12 above the LCD
+                        .offset(y: panelOffsetY)
+                        // An empty-body tap target beside the shutter, on the side
+                        // WITHOUT the panel, moves the panel to the other side.
+                        HStack(spacing: 0) {
+                            if panelOnLeft {
+                                Spacer()
+                                Color.clear.frame(width: sideGap).contentShape(Rectangle())
+                                    .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { panelOnLeft.toggle() } }
+                            } else {
+                                Color.clear.frame(width: sideGap).contentShape(Rectangle())
+                                    .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { panelOnLeft.toggle() } }
+                                Spacer()
+                            }
+                        }
+                        .frame(height: m.wheel)
+                        .offset(y: panelOffsetY)
                     }
                     .padding(.top, m.gapShutter)
                     LCDView(rows: [LCDRow(id: .name, value: model.nameRow),
