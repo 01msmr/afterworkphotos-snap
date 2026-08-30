@@ -20,6 +20,7 @@ final class AppModel {
     private(set) var isLive = false          // the session has started running
     let camera = SnapSession()
     private let location = LocationSource()
+    private let voiceTrigger = VoiceTrigger()
     private var configured = false
     private var capturing = false
     private var namingTask: Task<Void, Never>?
@@ -44,12 +45,15 @@ final class AppModel {
 
     func start() {
         guard !configured else { camera.start(); location.start(); return }
+        voiceTrigger.onTrigger = { [weak self] in self?.shoot() }
         camera.onDidStartRunning = { [weak self] in
             Task { @MainActor in
-                self?.isLive = true
+                guard let self else { return }
+                self.isLive = true
                 #if DEBUG
-                if let self { print("launch → isLive: \(Int(Date().timeIntervalSince(self.launchTime) * 1000)) ms") }
+                print("launch → isLive: \(Int(Date().timeIntervalSince(self.launchTime) * 1000)) ms")
                 #endif
+                if self.phase == .live { self.voiceTrigger.start() }
             }
         }
         // Off the main thread: configure() and startRunning() are both
@@ -62,12 +66,13 @@ final class AppModel {
         Secret.seedIfNeeded()
         location.start()
     }
-    func stop() { camera.stop(); location.stop() }
+    func stop() { camera.stop(); location.stop(); voiceTrigger.stop() }
 
     func shoot() {
         guard !shutterLocked else { return }
         sign = nil
         capturing = true
+        voiceTrigger.stop()
         camera.freezePreview(true)                 // instant still, until retake or a finished post
         let fix = location.usableFix
         camera.capture { [weak self] result in
@@ -155,6 +160,7 @@ final class AppModel {
         full = nil; preview = nil; names = []; sign = nil; phase = .live
         place = nil; date = nil; nameIndex = 0; showIndex = false
         saved = false
+        voiceTrigger.start()
     }
 
     /// A fresh encode with the LCD's current name and place; to the
@@ -190,6 +196,7 @@ final class AppModel {
                 try await Uploader.send(square)
                 phase = .sent
                 sign = Strings.t(.postSent, language)
+                voiceTrigger.start()   // the shutter itself unlocks at .sent too — listen again from here
                 camera.freezePreview(false)
                 previewTask?.cancel(); previewTask = nil
                 self.full = nil; self.preview = nil; names = []

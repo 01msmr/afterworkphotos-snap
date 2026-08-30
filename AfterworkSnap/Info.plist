@@ -4,6 +4,10 @@
 <dict>
 	<key>ANTHROPIC_API_KEY</key>
 	<string>$(ANTHROPIC_API_KEY)</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Listens for the word “snap”.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Recognises the word “snap” on this phone.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
