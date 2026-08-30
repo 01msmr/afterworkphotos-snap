@@ -14,10 +14,14 @@ struct Metrics {
     let side: CGFloat
     let printSide: CGFloat
 
-    /// gapLogo + logoLineHeight + gapShutter + shutter + gapLCD + lcdHeight
-    /// + slideBottom + slideH + 30 spare, at the reference (scale == 1)
-    /// point values — kept as one constant so it can't drift from them.
-    private static let fixedStack: CGFloat = 24 + 26 * 1.2 + 24 + 96 + 32 + 78 + 30 + 40 + 30
+    /// The new stack, print to screen bottom, at the reference (scale ==
+    /// 1) point values: gapLogo (print → LCD, 24) + lcdHeight (78) +
+    /// gapLCD (LCD → shutter row, 32) + shutter (96) + gapShutter (shutter
+    /// row → bottom row, reused as a minimum-clearance figure since the
+    /// bottom row is independently bottom-anchored, not stacked
+    /// sequentially, 24) + slideH (40) + 30 spare — kept as one constant
+    /// so it can't drift from them.
+    private static let fixedStack: CGFloat = 24 + 78 + 32 + 96 + 24 + 40 + 30
 
     init(width: CGFloat, height: CGFloat) {
         scale = width < 393 ? width / 393 : 1

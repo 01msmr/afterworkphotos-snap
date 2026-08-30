@@ -12,7 +12,10 @@ struct ContentView: View {
             let side = m.side
             let printSide = m.printSide
             let lang = model.language
-            let panelOffsetY = (m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12)   // bottom edge 12 above the LCD
+            // The panel hangs from the LCD: its top edge sits 12 pt below
+            // the LCD's bottom, mirroring (negated) the old bottom-aligned
+            // formula, since the LCD is now above the shutter row, not below.
+            let panelOffsetY = -((m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12))
             let sideGap = max(0, (geo.size.width - m.shutter) / 2)               // screen edge → shutter, one side
             ZStack(alignment: .top) {
                 Leather(metrics: m)
@@ -48,7 +51,16 @@ struct ContentView: View {
                     )
                     .shadow(color: Theme.edgeLight(scheme), radius: 0, y: 1)
                     .padding(.top, m.printTop - m.titleTop - m.titleHeight)
-                    LogoView(size: m.logoSize).padding(.top, m.gapLogo)
+                    // The LCD, directly below the print now (24 pt gap).
+                    LCDView(rows: [LCDRow(id: .name, value: model.nameRow),
+                                   LCDRow(id: .loc, value: model.place ?? Strings.t(.empty, lang)),
+                                   LCDRow(id: .date, value: model.date ?? Strings.t(.empty, lang))],
+                            invertedRow: model.showIndex ? .name : nil,
+                            sign: model.sign, signTwitching: model.phase == .failed,
+                            language: lang, metrics: m, enabled: model.controlsEnabled, onNameSwipe: { model.step($0) })
+                        .padding(.horizontal, side).padding(.top, m.gapLogo)
+                    // The shutter row: shutter centred; the control panel
+                    // hangs from the LCD's bottom (see panelOffsetY above).
                     ZStack {
                         ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
                         HStack {
@@ -85,19 +97,16 @@ struct ContentView: View {
                         .frame(height: m.wheel)
                         .offset(y: panelOffsetY)
                     }
-                    .padding(.top, m.gapShutter)
-                    LCDView(rows: [LCDRow(id: .name, value: model.nameRow),
-                                   LCDRow(id: .loc, value: model.place ?? Strings.t(.empty, lang)),
-                                   LCDRow(id: .date, value: model.date ?? Strings.t(.empty, lang))],
-                            invertedRow: model.showIndex ? .name : nil,
-                            sign: model.sign, signTwitching: model.phase == .failed,
-                            language: lang, metrics: m, enabled: model.controlsEnabled, onNameSwipe: { model.step($0) })
-                        .padding(.horizontal, side).padding(.top, m.gapLCD)
+                    .padding(.top, m.gapLCD)
                     Spacer(minLength: 0)
                 }
+                // Bottom row: retake — Snap (centred between them, vertically
+                // centred on the slides) — post.
                 VStack { Spacer()
                     HStack {
                         SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)]) { model.retake() }
+                        Spacer()
+                        LogoView(size: m.logoSize)
                         Spacer()
                         SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)]) { model.post() }
                     }
