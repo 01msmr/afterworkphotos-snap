@@ -34,4 +34,11 @@ nonisolated final class LocationSource: NSObject, CLLocationManagerDelegate {
         if manager.authorizationStatus == .authorizedWhenInUse { manager.startUpdatingLocation() }
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
+
+    /// The town for a fix, from the device's own geocoder; nil when it has none.
+    func placeName(for fix: (Double, Double)) async -> String? {
+        let location = CLLocation(latitude: fix.0, longitude: fix.1)
+        guard let mark = try? await CLGeocoder().reverseGeocodeLocation(location).first else { return nil }
+        return mark.locality ?? mark.subAdministrativeArea
+    }
 }
