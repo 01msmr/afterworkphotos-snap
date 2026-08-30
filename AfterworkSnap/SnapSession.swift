@@ -34,12 +34,25 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
     deinit { if let startObserver { NotificationCenter.default.removeObserver(startObserver) } }
 
     func configure() throws {
+        #if DEBUG
+        print("t+\(msSinceLaunch()) ms: session queue, before beginConfiguration")
+        #endif
         session.beginConfiguration()
         defer { session.commitConfiguration() }
         session.sessionPreset = .photo
+        #if DEBUG
+        let deviceStart = Date()
+        #endif
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             throw CaptureError.noCamera
         }
+        #if DEBUG
+        // Notes, doesn't gate anything: AVCaptureDevice.default(_:for:position:)
+        // is itself a synchronous, on-queue call — if device discovery were
+        // ever slow, it would show up right here as a large gap between this
+        // line and "before beginConfiguration" above.
+        print("t+\(msSinceLaunch()) ms: device discovery took \(Int(Date().timeIntervalSince(deviceStart) * 1000)) ms")
+        #endif
         let input = try AVCaptureDeviceInput(device: device)
         guard session.canAddInput(input), session.canAddOutput(output) else { throw CaptureError.cannotConfigure }
         session.addInput(input)
@@ -65,7 +78,13 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
         queue.async { [self] in
             do {
                 try configure()
+                #if DEBUG
+                print("t+\(msSinceLaunch()) ms: after commitConfiguration")
+                #endif
                 if !session.isRunning { session.startRunning() }
+                #if DEBUG
+                print("t+\(msSinceLaunch()) ms: after startRunning returns")
+                #endif
                 DispatchQueue.main.async { completion(nil) }
             } catch {
                 DispatchQueue.main.async { completion(error) }

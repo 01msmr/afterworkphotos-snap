@@ -1,6 +1,17 @@
 import SwiftUI
 import SnapCore
 
+#if DEBUG
+/// Captured on first reference — as close to app launch as this debug
+/// instrumentation can get, since `AppModel()` (via `ContentView`'s
+/// `@State`) is among the very first things SwiftUI evaluates.
+/// `nonisolated`: read from `SnapSession`/`PreviewView`, which aren't on
+/// the main actor — this project's default actor isolation would
+/// otherwise make a bare top-level `let`/`func` main-actor-isolated too.
+nonisolated let appLaunchTime = Date()
+nonisolated func msSinceLaunch() -> Int { Int(Date().timeIntervalSince(appLaunchTime) * 1000) }
+#endif
+
 @Observable @MainActor
 final class AppModel {
     enum Phase: Equatable { case live, naming, review, sending, sent, failed }
@@ -30,7 +41,7 @@ final class AppModel {
     private var placeDone = false           // the place lookup for this shot has finished (or there is none)
     private var previewTask: Task<Void, Never>?   // decodes `preview`; cancelled on retake/post-success
 #if DEBUG
-    private let launchTime = Date()          // for the one-line startup timing print below
+    private var loggedFirstNamesRequest = false
 #endif
 
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
@@ -43,7 +54,14 @@ final class AppModel {
     }
     var nameRow: String { showIndex && !names.isEmpty ? "[\(nameIndex + 1)] \(name)" : name }
 
+#if DEBUG
+    init() { print("t+\(msSinceLaunch()) ms: AppModel.init end") }
+#endif
+
     func start() {
+        #if DEBUG
+        print("t+\(msSinceLaunch()) ms: start() entry")
+        #endif
         guard !configured else { camera.start(); location.start(); return }
         voiceTrigger.onTrigger = { [weak self] in self?.shoot() }
         camera.onDidStartRunning = { [weak self] in
@@ -51,20 +69,27 @@ final class AppModel {
                 guard let self else { return }
                 self.isLive = true
                 #if DEBUG
-                print("launch → isLive: \(Int(Date().timeIntervalSince(self.launchTime) * 1000)) ms")
+                print("t+\(msSinceLaunch()) ms: isLive (didStartRunning)")
                 #endif
+                // Everything that isn't the camera itself waits until the
+                // camera is confirmed live, so cold start is never blocked
+                // by Keychain I/O, CoreLocation, or a speech/microphone
+                // permission prompt.
+                Secret.seedIfNeeded()
+                self.location.start()
                 if self.phase == .live { self.voiceTrigger.start() }
             }
         }
         // Off the main thread: configure() and startRunning() are both
         // blocking AVFoundation calls. Kick this off first, then the rest.
         // `configured` only becomes true once that has actually succeeded.
+        #if DEBUG
+        print("t+\(msSinceLaunch()) ms: configureAndStart called")
+        #endif
         camera.configureAndStart { [weak self] error in
             guard let self else { return }
             Task { @MainActor in if error == nil { self.configured = true } }
         }
-        Secret.seedIfNeeded()
-        location.start()
     }
     func stop() { camera.stop(); location.stop(); voiceTrigger.stop() }
 
@@ -119,6 +144,12 @@ final class AppModel {
         fetchID += 1
         let myID = fetchID
         naming = true
+        #if DEBUG
+        if !loggedFirstNamesRequest {
+            loggedFirstNamesRequest = true
+            print("t+\(msSinceLaunch()) ms: first names request sent")
+        }
+        #endif
         namingTask = Task {
             let got = await Namer.suggest(for: full, language: language)
             guard myID == fetchID, !Task.isCancelled else { return }   // superseded or cancelled: do nothing

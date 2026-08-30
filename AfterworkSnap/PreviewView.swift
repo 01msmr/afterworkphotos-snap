@@ -9,8 +9,17 @@ struct PreviewView: UIViewRepresentable {
 
     final class View: UIView {
         var previewLayer: AVCaptureVideoPreviewLayer?
+        #if DEBUG
+        private var loggedFirstLayout = false
+        #endif
         override func layoutSubviews() {
             super.layoutSubviews()
+            #if DEBUG
+            if !loggedFirstLayout {
+                loggedFirstLayout = true
+                print("t+\(msSinceLaunch()) ms: first PreviewView layout")
+            }
+            #endif
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             previewLayer?.frame = bounds
