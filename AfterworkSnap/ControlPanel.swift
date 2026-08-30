@@ -82,7 +82,7 @@ struct ControlPanel: View {
         let width = metrics.pt(36)
         let height = metrics.wheel - metrics.pt(6)   // pt(66): a pt(3) margin top and bottom inside the 72 pt panel
         let R = height / 2
-        let delta = 0.80      // row angle step: the neighbours land at y = R ± R·sin(0.8) ≈ R ± 24 — this, not the face height, sets the room around [1]
+        let delta = 1.00      // row angle step: the neighbours land at y = R ± R·sin(1.0) ≈ R ± 28 — this, not the face height, sets the room between the numbers
         let rowCount = max(count, 6)
         let isDark = scheme == .dark
 
