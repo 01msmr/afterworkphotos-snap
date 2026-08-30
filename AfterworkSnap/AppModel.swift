@@ -105,10 +105,17 @@ final class AppModel {
         }
     }
 
-    func step(_ delta: Int) {
-        guard !names.isEmpty else { return }
-        nameIndex = (nameIndex + delta + names.count) % names.count
+    /// Clamped, not wrapped: at either end, further steps do nothing.
+    /// Returns whether the index actually moved, so a caller (the wheel)
+    /// knows whether this step earned a haptic tick.
+    @discardableResult
+    func step(_ delta: Int) -> Bool {
+        guard !names.isEmpty else { return false }
+        let clamped = min(max(nameIndex + delta, 0), names.count - 1)
+        guard clamped != nameIndex else { return false }
+        nameIndex = clamped
         showIndex = true
+        return true
     }
 
     func retake() {

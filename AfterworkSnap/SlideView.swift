@@ -6,12 +6,18 @@ import SwiftUI
 /// Built without `scaleEffect`: the rest edge (where the knob sits at
 /// offset 0) and the far edge (where it travels to, and fires) are simply
 /// swapped between `.leading` and `.trailing` depending on `mirrored`, so
-/// the label text is never drawn backwards. At rest the word's edge nearer
-/// the far (outer) end sits 16 pt in from it; while sliding, the word's
-/// edge nearer the rest (inner) end sits 16 pt in from it, on the colour.
-/// Only the knob (and the colour fill trailing it) moves; the labels only
-/// switch opacity at the offset == 0 threshold. Passive (disabled) slides
-/// show no colour at all, even behind the knob.
+/// the label text is never drawn backwards.
+///
+/// Two labels, both always drawn — nothing is ever hidden by opacity, so
+/// nothing can be seen to move or fade on the first drag:
+///  - Label A sits fixed at the outer end, always visible; the knob may
+///    slide over it near the end of travel (it's drawn on top).
+///  - Label B is the same word, fixed centred on the knob's *resting*
+///    position, drawn *under* the knob — at rest the opaque knob covers
+///    it entirely, and it's revealed as the knob slides away.
+/// Both labels carry `.transaction { $0.animation = nil }` so neither the
+/// knob's spring snap-back nor a label text change (POST ↔ RETRY) can
+/// animate them.
 struct SlideView: View {
     let label: String
     let colour: Color
@@ -38,18 +44,16 @@ struct SlideView: View {
             if enabled && offset > 0 {
                 Rectangle().fill(colour).frame(width: metrics.pt(4) + offset + k / 2).clipShape(Capsule())
             }
-            // resting label: near edge 16 from the far (outer) end — fixed in place,
-            // never animated (not by the knob's spring, not by a POST/RETRY text change)
+            // Label A: fixed at the outer end, always visible.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: farAlign)
                 .padding(farEdge, metrics.labelInset)
-                .opacity(offset == 0 ? 1 : 0)
                 .transaction { $0.animation = nil }
-            // the same word, fixed on the colour, near edge 16 from the inner end — likewise fixed
+            // Label B: the same word, fixed centred on the knob's resting
+            // position — under the knob, so it's covered at rest.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: restAlign)
-                .padding(restEdge, metrics.labelInset)
-                .opacity(offset == 0 ? 0 : 1)
+                .frame(width: k, alignment: .center)
+                .padding(restEdge, metrics.pt(4))
                 .transaction { $0.animation = nil }
             Color.clear.frame(width: k, height: k)
                 .modifier(Dome(radius: k / 2))
