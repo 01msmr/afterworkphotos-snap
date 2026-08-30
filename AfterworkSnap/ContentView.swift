@@ -107,6 +107,7 @@ struct ContentView: View {
         }
         .ignoresSafeArea()
         .statusBarHidden(true)
+        .animation(.easeInOut(duration: 0.3), value: scheme)   // cross-fade leather/panel/title/LCD on appearance change
         .onAppear { model.start() }
         .onDisappear { model.stop() }
     }

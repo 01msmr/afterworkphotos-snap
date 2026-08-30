@@ -58,14 +58,14 @@ struct SlideView: View {
             }
             // Label A: fixed at the outer end, masked by the untravelled strip
             // between the knob's leading edge and the outer end.
-            Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
+            Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(enabled ? .white : Color(white: 0.72))
                 .frame(maxWidth: .infinity, alignment: farAlign)
                 .padding(farEdge, metrics.labelInset)
                 .mask(alignment: farAlign) { Rectangle().frame(width: labelAMaskWidth) }
                 .transaction { $0.animation = nil }
             // Label B: fixed 16 pt from the inner end, masked by the fill's
             // own geometry — revealed exactly as the fill grows over it.
-            Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
+            Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(enabled ? .white : Color(white: 0.72))
                 .frame(maxWidth: .infinity, alignment: restAlign)
                 .padding(restEdge, metrics.labelInset)
                 .mask(alignment: restAlign) { Rectangle().frame(width: fillWidth) }

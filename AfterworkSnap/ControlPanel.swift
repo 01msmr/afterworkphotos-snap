@@ -1,9 +1,13 @@
 import SwiftUI
+import UIKit
 
-/// A recessed dark bezel holding the system's own wheel picker — the
-/// "drum" — for stepping through the six suggested names, and the
-/// regenerate button (fetch six new names). `mirrored`: the drum and
-/// button swap sides (used when the whole panel sits on the left).
+/// A recessed dark bezel holding a custom-drawn cylindrical "drum" — the
+/// numbers "[n]" printed around a rolling drum, seen face-on — for
+/// stepping through the six suggested names, and the regenerate button
+/// (fetch six new names). `mirrored`: the drum and button swap sides
+/// (used when the whole panel sits on the left). The panel itself is a
+/// fixed 96 × 72 — only the drum inside it is custom-drawn; the button
+/// is unchanged apart from its new, smaller diameter.
 struct ControlPanel: View {
     let count: Int
     @Binding var selection: Int
@@ -12,6 +16,11 @@ struct ControlPanel: View {
     let mirrored: Bool
     let onCenter: () -> Void
     @Environment(\.colorScheme) private var scheme
+    @State private var position: Double = 0
+    @State private var lastTranslation: CGFloat = 0
+    @State private var dragActive = false
+    @State private var lastRounded = 0
+    @State private var haptic = UISelectionFeedbackGenerator()
 
     var body: some View {
         let height = metrics.wheel      // pt(72), the panel's full height
@@ -47,31 +56,100 @@ struct ControlPanel: View {
         .brightness(enabled ? 0 : (scheme == .dark ? -0.1 : -0.18))
     }
 
-    /// The system's own wheel picker, styled as the LCD's "drum": one row
-    /// per suggested name, "[n]"; with no names yet, six placeholder rows
-    /// "[1]"…"[6]" (dimmer text, disabled) — never a lone "-". Row text is
-    /// forced white in both colour schemes (the panel is always dark), and
-    /// the whole picker is forced to `.dark` in case `.pickerStyle(.wheel)`
-    /// ignores `.foregroundStyle` on its own chrome.
+    /// A vertical cylinder, seen face-on, `pt(47) × pt(64)` (R = 32): the
+    /// "[n]" rows are printed around its circumference and roll past as
+    /// you drag. Each visible row sits at angle `θ = (i - position)·0.42`,
+    /// `y = R − R·sin θ`, scaled vertically by `cos θ` and faded by
+    /// `cos²θ` — dense and high-contrast at the centre, compressed and
+    /// faint near the rims, like a real cylinder; a thin separator line
+    /// (same mapping, at the half-angle between rows) marks each row
+    /// boundary. Dragging rotates `position` continuously; releasing
+    /// snaps to the nearest whole index with a spring. Disabled (and
+    /// greyed) before a shot — the rows still show, so the panel never
+    /// looks like a plain flat filler.
     private var drum: some View {
-        Picker("", selection: $selection) {
-            if count > 0 {
-                ForEach(0..<count, id: \.self) { i in
-                    Text("[\(i + 1)]").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white).tag(i)
+        let width = metrics.pt(47)
+        let height = metrics.pt(64)
+        let R = height / 2
+        let delta = 0.42
+        let rowCount = max(count, 6)
+        let isDark = scheme == .dark
+        let mid1 = isDark ? 0.20 : 0.28
+        let mid2 = isDark ? 0.42 : 0.55
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: metrics.pt(8))
+                .fill(LinearGradient(stops: [
+                    .init(color: .black, location: 0.0),
+                    .init(color: Color(white: mid1), location: 0.20),
+                    .init(color: Color(white: mid2), location: 0.50),
+                    .init(color: Color(white: mid1), location: 0.80),
+                    .init(color: .black, location: 1.0),
+                ], startPoint: .top, endPoint: .bottom))
+                .overlay(                                          // soft specular band, 42–50 % of height
+                    LinearGradient(stops: [
+                        .init(color: .clear, location: 0.0),
+                        .init(color: .clear, location: 0.42),
+                        .init(color: .white.opacity(0.14), location: 0.46),
+                        .init(color: .clear, location: 0.50),
+                        .init(color: .clear, location: 1.0),
+                    ], startPoint: .top, endPoint: .bottom)
+                )
+                .overlay(RoundedRectangle(cornerRadius: metrics.pt(8)).stroke(.black, lineWidth: metrics.pt(1)))
+
+            ForEach(0..<rowCount, id: \.self) { i in
+                let theta = (Double(i) - position) * delta
+                if abs(theta) < .pi / 2 {
+                    Text("[\(i + 1)]")
+                        .font(.system(size: metrics.pt(13), weight: .semibold, design: .monospaced))
+                        .foregroundStyle(count > 0 ? .white : Color(white: 0.55))
+                        .scaleEffect(x: 1, y: cos(theta))
+                        .opacity(cos(theta) * cos(theta))
+                        .position(x: width / 2, y: R - R * sin(theta))
                 }
-            } else {
-                ForEach(0..<6, id: \.self) { i in
-                    Text("[\(i + 1)]").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color(white: 0.55)).tag(i)
+            }
+            ForEach(0...rowCount, id: \.self) { i in
+                let theta = (Double(i) - 0.5 - position) * delta
+                if abs(theta) < .pi / 2 {
+                    Rectangle().fill(.black.opacity(0.5 * cos(theta)))
+                        .frame(width: width, height: metrics.pt(1))
+                        .position(x: width / 2, y: R - R * sin(theta))
                 }
             }
         }
-        .pickerStyle(.wheel)
-        .labelsHidden()
-        .environment(\.colorScheme, .dark)
-        .frame(width: metrics.pt(48), height: metrics.pt(72))
+        .frame(width: width, height: height)
         .clipShape(RoundedRectangle(cornerRadius: metrics.pt(8)))
+        .contentShape(Rectangle())
+        .onAppear { position = Double(selection) }
+        .onChange(of: selection) { _, new in if !dragActive { position = Double(new) } }
+        .gesture(
+            DragGesture(minimumDistance: 2)
+                .onChanged { g in
+                    guard enabled, count > 0 else { return }
+                    if !dragActive {
+                        dragActive = true
+                        haptic.prepare()
+                        lastTranslation = 0
+                        lastRounded = Int(position.rounded())
+                    }
+                    let d = g.translation.height - lastTranslation
+                    lastTranslation = g.translation.height
+                    // Dragging down rolls the cylinder to the next (higher) row.
+                    position += d / (R * delta)
+                    position = min(max(position, 0), Double(count - 1))
+                    let rounded = Int(position.rounded())
+                    if rounded != lastRounded {
+                        lastRounded = rounded
+                        haptic.selectionChanged()
+                        selection = rounded
+                    }
+                }
+                .onEnded { _ in
+                    dragActive = false
+                    lastTranslation = 0
+                    withAnimation(.spring(duration: 0.25)) { position = position.rounded() }
+                }
+        )
         .disabled(!enabled || count == 0)
     }
 
@@ -80,8 +158,8 @@ struct ControlPanel: View {
             Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
                 .font(.system(size: metrics.pt(16), weight: .bold))
                 .foregroundStyle(enabled ? (scheme == .dark ? Theme.titleBlueDark : Theme.titleBlue) : Color(white: 0.48))
-                .frame(width: metrics.pt(36), height: metrics.pt(36))
-                .modifier(Dome(radius: metrics.pt(18)))
+                .frame(width: metrics.pt(30), height: metrics.pt(30))
+                .modifier(Dome(radius: metrics.pt(15)))
         }
         .buttonStyle(.plain)
     }

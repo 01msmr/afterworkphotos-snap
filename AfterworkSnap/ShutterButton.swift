@@ -2,13 +2,15 @@ import SwiftUI
 
 /// The red release: flat, iOS 26 glass style — not domed.
 ///
-/// `locked`'s "dimmed" look isn't a filter — it's a flat colour swap: the
-/// base is drawn in `Theme.redDark` when locked, `Theme.shutterMid`
-/// otherwise, so a locked shutter and the breathing floor read as the
-/// same colour. While `breathing`, the *other* colour pulses on top —
-/// inverted when locked (starts fully opaque and fades to 0, so a fresh
-/// tap still reads bright red for an instant before settling into the
-/// breathing dark).
+/// `locked`'s "dimmed" look is both a flat colour swap AND a filter, so
+/// the difference from unlocked is obvious at a glance: the base is drawn
+/// in `Theme.redDark` when locked, `Theme.shutterMid` otherwise, and a
+/// `.saturation(0.6)`/`.brightness(-0.08)` filter sits on top while
+/// locked. While `breathing`, the *other* colour pulses on top of the
+/// base — inverted when locked (starts fully opaque and fades to 0, so a
+/// fresh tap still reads bright red for an instant before settling into
+/// the breathing dark). Unlocked is the full base red with the glass,
+/// unfiltered.
 struct ShutterButton: View {
     let size: CGFloat
     let metrics: Metrics
@@ -53,6 +55,8 @@ struct ShutterButton: View {
                 }
             }
             .shadow(color: .black.opacity(0.35), radius: 6 * s, y: 3 * s)
+            .saturation(locked ? 0.6 : 1)
+            .brightness(locked ? -0.08 : 0)
         }
         .buttonStyle(.plain)
         .frame(width: size, height: size)

@@ -70,7 +70,10 @@ enum Theme {
 
 /// The leather: the tile from the asset catalog, tiled at 150 pt, under a wide top light.
 /// The two `Image`s are built once (`static let`), not reconstructed from a
-/// dynamic string on every `body` evaluation.
+/// dynamic string on every `body` evaluation. Both textures are drawn at
+/// once (the inactive one at opacity 0) so a system appearance change
+/// cross-fades between them — swapping which `Image` an `ImagePaint` holds
+/// can't itself animate, only an opacity change can.
 struct Leather: View {
     @Environment(\.colorScheme) private var scheme
     let metrics: Metrics
@@ -79,12 +82,15 @@ struct Leather: View {
     var body: some View {
         ZStack {
             Theme.body(scheme)
-            Rectangle().fill(ImagePaint(image: scheme == .dark ? Self.dark : Self.light,
-                                        scale: metrics.pt(150) / 256))
+            Rectangle().fill(ImagePaint(image: Self.light, scale: metrics.pt(150) / 256))
+                .opacity(scheme == .dark ? 0 : 1)
+            Rectangle().fill(ImagePaint(image: Self.dark, scale: metrics.pt(150) / 256))
+                .opacity(scheme == .dark ? 1 : 0)
             RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.10 : 0.35), .black.opacity(scheme == .dark ? 0.35 : 0.08)],
                            center: .top, startRadius: 0, endRadius: metrics.pt(900))
         }
         .ignoresSafeArea()
+        .animation(.easeInOut(duration: 0.3), value: scheme)
     }
 }
 
