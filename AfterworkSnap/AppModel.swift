@@ -25,7 +25,6 @@ final class AppModel {
     private var placeTask: Task<Void, Never>?
     private var fetchID = 0
     private var saved = false               // already in the library — a retry must not add it twice
-    private var encoded: Data?              // the one encode, reused verbatim on retry
 
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var shutterBreathing: Bool { naming }
@@ -61,7 +60,7 @@ final class AppModel {
             date = TakenDate.from(jpeg: data)
             place = nil
             names = []; nameIndex = 0; showIndex = false
-            saved = false; encoded = nil
+            saved = false
             phase = .naming
             placeTask?.cancel()
             placeTask = Task { [weak self] in
@@ -83,7 +82,7 @@ final class AppModel {
         naming = true
         namingTask = Task {
             let got = await Namer.suggest(for: full, language: language)
-            guard myID == fetchID else { return }   // superseded: do nothing
+            guard myID == fetchID, !Task.isCancelled else { return }   // superseded or cancelled: do nothing
             names = got; nameIndex = 0
             namingTask = nil
             naming = false
@@ -102,39 +101,43 @@ final class AppModel {
         placeTask?.cancel(); placeTask = nil
         full = nil; preview = nil; names = []; sign = nil; phase = .live
         place = nil; date = nil; nameIndex = 0; showIndex = false
-        saved = false; encoded = nil
+        saved = false
     }
 
-    /// One encode with the LCD's name and place; to the library, then to the
-    /// site. A retry (after `.failed`) reuses the same encoded bytes and
-    /// skips the library save if that already succeeded.
+    /// A fresh encode with the LCD's current name and place; to the
+    /// library once, then to the site every time (a retry after `.failed`
+    /// re-encodes with whatever the LCD shows now — the site always gets
+    /// the current name; the library copy, saved only on the first
+    /// attempt, keeps whichever name was current then).
     func post() {
         guard let full, controlsEnabled else { return }
         namingTask?.cancel(); namingTask = nil; naming = false
         phase = .sending
         Task {
             if place == nil, let fix {
-                let loc = location
-                place = await withTaskGroup(of: String?.self) { group in
-                    group.addTask { await loc.placeName(for: fix) }
-                    group.addTask { try? await Task.sleep(for: .seconds(3)); return nil }
-                    let result = await group.next() ?? nil
-                    group.cancelAll()
-                    return result
+                if let placeTask {
+                    _ = await withTaskGroup(of: Void.self) { group in
+                        group.addTask { await placeTask.value }
+                        group.addTask { try? await Task.sleep(for: .seconds(3)) }
+                        await group.next()
+                        group.cancelAll()
+                    }
+                } else {
+                    let loc = location
+                    place = await withTaskGroup(of: String?.self) { group in
+                        group.addTask { await loc.placeName(for: fix) }
+                        group.addTask { try? await Task.sleep(for: .seconds(3)); return nil }
+                        let result = await group.next() ?? nil
+                        group.cancelAll()
+                        return result
+                    }
                 }
             }
             do {
-                let square: Data
-                if let encoded {
-                    square = encoded
-                } else {
-                    var extra: [CFString: Any] = [:]
-                    Metadata.stamp(&extra, name: names.isEmpty ? nil : names[nameIndex], place: place)
-                    let gps = fix.map { GPSDictionary.make(latitude: $0.0, longitude: $0.1) }
-                    let made = try SquareCrop.centered(in: full, gps: gps, extra: extra)
-                    encoded = made
-                    square = made
-                }
+                var extra: [CFString: Any] = [:]
+                Metadata.stamp(&extra, name: names.isEmpty ? nil : names[nameIndex], place: place)
+                let gps = fix.map { GPSDictionary.make(latitude: $0.0, longitude: $0.1) }
+                let square = try SquareCrop.centered(in: full, gps: gps, extra: extra)
                 if !saved {
                     try await PhotoSaver.saveAsFavorite(square)
                     saved = true
@@ -144,7 +147,7 @@ final class AppModel {
                 sign = Strings.t(.postSent, language)
                 self.full = nil; self.preview = nil; names = []
                 place = nil; date = nil; nameIndex = 0; showIndex = false
-                saved = false; encoded = nil
+                saved = false
                 try? await Task.sleep(for: .seconds(9))
                 if phase == .sent { sign = nil; phase = .live }
             } catch {

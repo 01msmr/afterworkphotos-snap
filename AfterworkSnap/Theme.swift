@@ -1,32 +1,30 @@
 import SwiftUI
-import UIKit
 
 /// The spec's constants, in points. `scale` shrinks them below the 393 pt
 /// reference width (small phones only) but is always 1 at or above it —
-/// iPad gets the same point sizes as a standard iPhone. The print itself
-/// is sized separately: on iPhone it simply fills the width (4 % side
-/// margins); on iPad it shrinks a little so the fixed-height stack of
-/// controls below it still fits the screen, and is centred in the extra
-/// horizontal room that leaves.
+/// iPad and Plus/Max iPhones get the same point sizes as a standard
+/// iPhone. The print is sized to fit both axes: it fills 92 % of the
+/// width unless the fixed-height stack of controls below it (logo,
+/// shutter/wheel, LCD, slides) wouldn't then fit the screen's height, in
+/// which case it shrinks to fit that instead, and is centred in whatever
+/// horizontal room that shrink leaves. On a 393×852 reference screen the
+/// width is always the binding constraint, so nothing changes there.
 struct Metrics {
     let scale: CGFloat
     let side: CGFloat
     let printSide: CGFloat
 
+    /// gapLogo + logoLineHeight + gapShutter + shutter + gapLCD + lcdHeight
+    /// + slideBottom + slideH + 30 spare, at the reference (scale == 1)
+    /// point values — kept as one constant so it can't drift from them.
+    private static let fixedStack: CGFloat = 24 + 26 * 1.2 + 24 + 96 + 32 + 78 + 30 + 40 + 30
+
     init(width: CGFloat, height: CGFloat) {
         scale = width < 393 ? width / 393 : 1
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            // gapLogo + logo + gapShutter + shutter + gapLCD + lcd + slideBottom + slideH + spare
-            let fixedStack: CGFloat = 24 + 26 + 24 + 96 + 32 + 78 + 30 + 40 + 30
-            let fitPrint = height - 56 - fixedStack
-            let printSide = min(width * 0.92, fitPrint)
-            self.printSide = printSide
-            side = max(width * 0.04, (width - printSide) / 2)
-        } else {
-            let side = width * 0.04
-            self.side = side
-            printSide = width - 2 * side
-        }
+        let fitPrint = height - 56 * scale - Self.fixedStack * scale
+        let printSide = min(width * 0.92, fitPrint)
+        self.printSide = printSide
+        side = max(width * 0.04, (width - printSide) / 2)
     }
     func pt(_ v: CGFloat) -> CGFloat { v * scale }
     var titleTop: CGFloat { pt(12) }
