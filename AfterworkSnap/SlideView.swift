@@ -12,12 +12,14 @@ import SwiftUI
 /// nothing can be seen to move or fade on the first drag:
 ///  - Label A sits fixed at the outer end, always visible; the knob may
 ///    slide over it near the end of travel (it's drawn on top).
-///  - Label B is the same word, fixed centred on the knob's *resting*
-///    position, drawn *under* the knob — at rest the opaque knob covers
-///    it entirely, and it's revealed as the knob slides away.
+///  - Label B is the same word, fixed 16 pt from the inner end (the same
+///    position the old "sliding" label held), but masked by a rectangle
+///    with exactly the colour fill's own geometry — at rest the fill (and
+///    so the mask) is zero-width, so nothing of it shows; it's revealed
+///    as the fill grows, in lockstep, never independently of it.
 /// Both labels carry `.transaction { $0.animation = nil }` so neither the
 /// knob's spring snap-back nor a label text change (POST ↔ RETRY) can
-/// animate them.
+/// animate them. The knob is drawn last, so it stays above both labels.
 struct SlideView: View {
     let label: String
     let colour: Color
@@ -36,28 +38,28 @@ struct SlideView: View {
         let farEdge: Edge.Set = mirrored ? .leading : .trailing
         let restAlign: Alignment = mirrored ? .trailing : .leading
         let farAlign: Alignment = mirrored ? .leading : .trailing
+        // The colour fill's own geometry — label B's mask uses exactly this,
+        // so it can only ever show through where the fill already is.
+        let fillWidth: CGFloat = (enabled && offset > 0) ? metrics.pt(4) + offset + k / 2 : 0
 
         ZStack(alignment: restAlign) {
             Capsule().fill(Theme.track)
                 .overlay(Capsule().strokeBorder(.black.opacity(0.45), lineWidth: 1))
                 .shadow(color: .black.opacity(0.45), radius: 2, y: 2)   // recessed
-            if enabled && offset > 0 {
-                Rectangle().fill(colour).frame(width: metrics.pt(4) + offset + k / 2).clipShape(Capsule())
+            if fillWidth > 0 {
+                Rectangle().fill(colour).frame(width: fillWidth).clipShape(Capsule())
             }
             // Label A: fixed at the outer end, always visible.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: farAlign)
                 .padding(farEdge, metrics.labelInset)
                 .transaction { $0.animation = nil }
-            // Label B: the same word, fixed centred on the knob's resting
-            // position — under the knob, so it's covered at rest. Rendered
-            // at its natural width (`.fixedSize`) rather than clipped to
-            // the knob's own width, so it may peek out beside the knob —
-            // accepted, not a bug.
+            // Label B: fixed 16 pt from the inner end, masked by the fill's
+            // own geometry — revealed exactly as the fill grows over it.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
-                .fixedSize(horizontal: true, vertical: false)
-                .frame(width: k, alignment: .center)
-                .padding(restEdge, metrics.pt(4))
+                .frame(maxWidth: .infinity, alignment: restAlign)
+                .padding(restEdge, metrics.labelInset)
+                .mask(alignment: restAlign) { Rectangle().frame(width: fillWidth) }
                 .transaction { $0.animation = nil }
             Color.clear.frame(width: k, height: k)
                 .modifier(Dome(radius: k / 2))
