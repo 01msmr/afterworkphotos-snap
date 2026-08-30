@@ -3,7 +3,7 @@
 Date: 2026-08-30. Status: **designed, not built.** Builds on
 `2026-08-29-snap-design.md` (the pipeline, the endpoint, the contract with
 `ingest.sh`), which stays in force except where this document says otherwise.
-Mockup of record: `2026-08-30-camera-back-mockup.html` beside this file (v30 of
+Mockup of record: `2026-08-30-camera-back-mockup.html` beside this file (v34 of
 the brainstorm; open it in a browser — four iPhones: live, just snapped,
 choosing a name, failed send). The two body textures live in
 `AfterworkSnap/Assets.xcassets/LeatherDark|LeatherLight.imageset`.
@@ -27,17 +27,17 @@ iPad alike; the status bar is hidden.
 | title band | top 12, height 44, left 4 %, right 4 % + 3 | just `snap`, in the site's link colour (`blue` / `#9db8ff` dark), 17 pt semibold, right-aligned; the 3 pt is the site's optical text inset, so title and print share one right edge |
 | print (viewfinder) | top 56, left 4 %, width 92 %, square | the site's deck print: 6 pt corners; outside `0 1px 0 edge-light, 1px 0 0 rgba(255,255,255,.3)`; inside `inset 0 3px 4px rgba(shade,.45), inset 0 1px 0 rgba(shade,.35), inset 3px 0 4px rgba(shade,.22), inset 0 -1px 0 rgba(255,255,255,.12)`; shade `40,30,20` light, `0,0,0` dark; edge-light `rgba(255,255,255,.55)` / `.14`. Never carries text. |
 | logo `Snap` | 24 below the print, centred, 26 pt italic black-weight serif | silver gradient fill (`#fdfdfb → #b8b8b4 → #8d8d89 → #dcdcd8`), thin black glossy outline; a physical badge |
-| shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), ridged collar. **Naming:** a lit layer (`#ff8a7e → #e8281e`, red halo) breathes over it, 1.6 s. **Failed send:** a darker layer (`#6a0400 → #3a0200`) breathes at half speed, 3.2 s. |
+| shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), ridged collar. **Naming:** a darker layer (`#6a0400 → #3a0200`) breathes over it slowly, 3.2 s. **After a shot** (naming, choosing, failed send): locked — desaturated and dimmed, does nothing — until retake or a finished post. |
 | wheel | Ø 72, right 4 %, bottom edge 12 above the LCD | always present: ridged rim, domed centre button with Font Awesome `arrows-rotate` in the site's blue. Before a shot: greyed — desaturated and dimmed, fully opaque, icon `#7a7a7a` |
 | LCD | 4 % sides, height 78, 32 below the shutter | green-grey (`#c9d3c2 → #b9c4b2`), ink `#1b2a1b`, recessed, black 4 pt bezel; monospace 14 pt; three rows, labels 10 pt at the left, empty content `-` |
-| retake slide | bottom 30, left 4 %, 104 × 40 | mirrored: knob at rest at the inner (right) end, slides outward to the left; label 20 pt from the track's left end |
-| post slide | bottom 30, right 4 %, 104 × 40 | knob at rest at the inner (left) end, slides outward to the right; label 14 pt from the track's right end |
+| retake slide | bottom 30, left 4 %, 104 × 40 | mirrored: knob at rest at the inner (right) end, slides outward to the left; label 16 pt from the track's left end — the same margin as post's |
+| post slide | bottom 30, right 4 %, 104 × 40 | knob at rest at the inner (left) end, slides outward to the right; label 16 pt from the track's right end |
 
 **Slides.** Track mid-grey `#8c8c8c`, knob Ø 32 domed; the label is white
 at all times, also when inactive (only the knob greys). While the knob
 moves, the track fills behind it — red `#c8100a` for retake, green `#1a9a3a`
 for post — the resting label hides and the same word shows fixed in the
-filled part. Release past 85 % of the travel fires; below, the knob snaps
+filled part, 16 pt from that end of the track — both labels stand still. Release past 85 % of the travel fires; below, the knob snaps
 back. The slides look the same in both modes.
 
 ### Body material
@@ -57,20 +57,21 @@ shadow). Mode follows the system.
    `date` fill at once (from the fix and the EXIF); `name` shows `…` and the
    shutter breathes until the first six AI names arrive (≈ 1–3 s); the first
    stands in the row without a number. Wheel and slides become live as soon
-   as the shot exists. If the AI fails, `name` stays `-`; posting is still
+   as the shot exists; the shutter locks. If the AI fails, `name` stays `-`; posting is still
    possible.
 3. **Choosing.** Turning the wheel — or swiping the `name` row — steps
    through the six names; from the first turn on the row is inverted and
    reads `[n] <name>`. The centre button asks for six new ones (the shutter
-   breathes again meanwhile). Nothing is typed, in any row.
+   breathes again meanwhile, still locked). Nothing is typed, in any row.
 4. **Post.** Slide: the square is encoded once with the LCD's name, place
    and date in its metadata, written to the library as a favorite and sent.
-   `SENT` shows inverted at the right end of the last LCD row for one
-   second, then live.
+   `Post sent.` stands inverted at the right end of the last LCD row —
+   the error's place — without movement for 9 s; the shutter unlocks at
+   once, the LCD clears with the sign.
 5. **Failed send.** The shot stays. `SENDING ERROR` (de: `SENDEFEHLER`)
    stands inverted at the right end of the last LCD row, twitching one
-   letter right–left–right every 1.2 s; the shutter breathes darker at half
-   speed; the post slide reads `RETRY` / `ERNEUT`. Retake drops the shot.
+   letter to the right and back, one second per position; the shutter stays
+   locked; the post slide reads `RETRY` / `ERNEUT`. Retake drops the shot.
 6. **Retake** from any state after a shot: back to live; nothing is saved.
 
 ## Language
@@ -84,7 +85,7 @@ otherwise. No switch.
 | retake | RETAKE | NOCHMAL |
 | post | POST | POSTEN |
 | retry | RETRY | ERNEUT |
-| sent | SENT | GESENDET |
+| post sent | Post sent. | Gesendet. |
 | sending error | SENDING ERROR | SENDEFEHLER |
 
 The AI names are asked for in the language in use.
@@ -153,7 +154,7 @@ by width/393, vertical only.
 ## Testing
 
 - `swift test` for the SnapCore additions.
-- On the device, per state: the shutter breathes and stops; the wheel steps
+- On the device, per state: the shutter breathes and stops, and does nothing while locked; the wheel steps
   1–6 both ways and by swipe; centre fetches six new; a post arrives on the
   site with that name and that place and the ingest log shows neither
   `desc for` nor `place for`; the library copy carries the same name; a post

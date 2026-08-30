@@ -1,4 +1,4 @@
-<h2>v30 — title optically flush with the print’s right edge</h2>
+<h2>v34 — slow dark breathing while naming; shutter locked after a shot</h2>
 <p class="subtitle">Margins above the logo and the shutter tightened to 24 pt; the slides sit low (bottom 30 pt, above the home indicator); both slides mid-grey with white text — retake turns red as you slide, post turns green; identical in dark mode. The shutter is red, and pulses while the AI is thinking.</p>
 
 <style>
@@ -50,19 +50,20 @@
       box-shadow: inset 0 2px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.25); }
   .slide .knob { position:absolute; left:4px; top:4px; width:32px; height:32px; border-radius:50%; z-index:2; background: radial-gradient(circle at 40% 35%, #f2f2f0, #bdbdb9 72%); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 0 rgba(0,0,0,.5), 0 2px 3px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.4); }
   .slide .lbl { position:absolute; top:0; height:40px; display:flex; align-items:center; justify-content:center; font:600 12px/1 -apple-system,system-ui,sans-serif; color:#fff; letter-spacing:.04em; z-index:1; }
-  .slide .lbl.r { left:40px; right:0; justify-content:flex-end; padding-right:14px; }            /* v13's label: right of the knob at rest */
-  .slide .lbl.l { left:0; width:62px; opacity:0; }  /* the same word, fixed in the left part */
+  .slide .lbl.r { left:40px; right:0; justify-content:flex-end; padding-right:16px; }            /* v13's label: right of the knob at rest */
+  .slide .lbl.l { left:0; right:40px; justify-content:flex-start; padding-left:16px; opacity:0; }  /* the same word, fixed in the left part */
   .slide.mid .lbl.r { opacity:0; } .slide.mid .lbl.l { opacity:1; }
   .slide.off { background:#8c8c8c; } .slide.off .knob { filter: saturate(0) brightness(.85); }
   .slide .fill { position:absolute; left:0; top:0; bottom:0; width:0; z-index:0; }
   .slide .lbl { z-index:1; }
   .slide.mid .knob { left:46px; } .slide.mid .fill { width:66px; }
   .slide.red .fill { background:#c8100a; } .slide.green .fill { background:#1a9a3a; }
-  .slide.rev { transform: scaleX(-1); } .slide.rev .lbl { transform: scaleX(-1); } .slide.rev .lbl.r { padding-right:20px; }  /* mirrored track, readable labels */
+  .slide.rev { transform: scaleX(-1); } .slide.rev .lbl { transform: scaleX(-1); } .slide.rev .lbl.r { justify-content:flex-start; padding-right:0; padding-left:16px; } .slide.rev .lbl.l { justify-content:flex-end; padding-left:0; padding-right:16px; }  /* mirrored track, readable labels */
   .wheel.off { filter: saturate(0) brightness(.82) contrast(.85); } .wheel.off svg { fill:#7a7a7a; }
-  .lcd .err { margin-left:auto; background:#1b2a1b; color:#c9d3c2; padding:2px 6px; border-radius:2px; font-weight:700; letter-spacing:.06em; animation: jitter 1.2s steps(1) infinite; }
-  @keyframes jitter { 0%,100% { transform: translateX(0); } 25% { transform: translateX(8px); } 50% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  .lcd .err { margin-left:auto; background:#1b2a1b; color:#c9d3c2; padding:2px 6px; border-radius:2px; font-weight:700; letter-spacing:.06em; animation: jitter 2s steps(1) infinite; }
+  @keyframes jitter { 0%,100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
   .shutter.fail:after { content:""; position:absolute; inset:0; border-radius:50%; background: radial-gradient(circle at 40% 32%, #6a0400, #3a0200 60%, #200100 100%); animation: pulse 3.2s ease-in-out infinite; }
+  .shutter.locked { filter: saturate(.25) brightness(.6); }
   .tag { font: 12px/1.4 system-ui, sans-serif; color:#777; text-align:center; margin-top:8px; max-width:300px; }
 </style>
 
@@ -92,7 +93,7 @@
     <div class="title"><b>snap</b></div>
     <div class="vf"></div>
     <div class="logo"><span><b>Snap</b></span></div>
-    <div class="shutter pulse"></div>
+    <div class="shutter fail"></div>
     <div class="wheel off"><svg viewBox="0 0 512 512"><path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H352c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5h.4c17.7 0 32-14.3 32-32V80c0-17.7-14.3-32-32-32s-32 14.3-32 32v35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V432c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352H160c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z"/></svg></div>
     <div class="lcd">
       <div class="row"><span class="k">name</span><span class="v">…</span></div>
@@ -103,7 +104,7 @@
     <div class="slide" style="right:4%"><div class="knob"></div><div class="lbl l">POST</div><div class="lbl r">POST</div></div>
     <div class="home"></div>
   </div></div></div>
-  <div class="tag"><b>2 · just snapped · dark.</b> Shutter pulses while the AI names the shot; loc and date are there already. Retake shown mid-slide: the track goes red under the knob. Slides look the same in dark.</div>
+  <div class="tag"><b>2 · just snapped · dark.</b> Shutter breathes slowly to a deeper red while the AI names the shot, and is locked until retake or a finished post; loc and date are there already. Retake shown mid-slide: the track goes red under the knob. Slides look the same in dark.</div>
   </div>
 
   <div>
@@ -111,7 +112,7 @@
     <div class="title"><b>snap</b></div>
     <div class="vf"></div>
     <div class="logo"><span><b>Snap</b></span></div>
-    <div class="shutter"></div>
+    <div class="shutter locked"></div>
     <div class="wheel"><svg viewBox="0 0 512 512"><path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H352c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5h.4c17.7 0 32-14.3 32-32V80c0-17.7-14.3-32-32-32s-32 14.3-32 32v35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V432c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352H160c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z"/></svg></div>
     <div class="lcd">
       <div class="row inv"><span class="k">name</span><span class="v">[1] Sun over tree<span class="cur"></span></span></div>
@@ -131,7 +132,7 @@
     <div class="title"><b>snap</b></div>
     <div class="vf"></div>
     <div class="logo"><span><b>Snap</b></span></div>
-    <div class="shutter fail"></div>
+    <div class="shutter locked"></div>
     <div class="wheel"><svg viewBox="0 0 512 512"><path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H352c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5h.4c17.7 0 32-14.3 32-32V80c0-17.7-14.3-32-32-32s-32 14.3-32 32v35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V432c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352H160c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z"/></svg></div>
     <div class="lcd">
       <div class="row"><span class="k">name</span><span class="v">Sun over tree</span></div>
@@ -142,7 +143,7 @@
     <div class="slide" style="right:4%"><div class="knob"></div><div class="lbl l">RETRY</div><div class="lbl r">RETRY</div></div>
     <div class="home"></div>
   </div></div></div>
-  <div class="tag"><b>4 · failed send · dark.</b> SENDING ERROR inverted at the right end of the last LCD line, twitching a letter right-left-right; the shutter breathing at half speed to a deeper red. Post reads RETRY.</div>
+  <div class="tag"><b>4 · failed send · dark.</b> SENDING ERROR inverted at the right end of the last LCD line, twitching a letter right-left-right; the shutter locked (greyed). Post reads RETRY.</div>
   </div>
 
 </div>
