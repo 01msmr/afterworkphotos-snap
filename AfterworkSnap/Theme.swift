@@ -70,13 +70,17 @@ enum Theme {
 }
 
 /// The leather: the tile from the asset catalog, tiled at 150 pt, under a wide top light.
+/// The two `Image`s are built once (`static let`), not reconstructed from a
+/// dynamic string on every `body` evaluation.
 struct Leather: View {
     @Environment(\.colorScheme) private var scheme
     let metrics: Metrics
+    private static let dark = Image("LeatherDark")
+    private static let light = Image("LeatherLight")
     var body: some View {
         ZStack {
             Theme.body(scheme)
-            Rectangle().fill(ImagePaint(image: Image(scheme == .dark ? "LeatherDark" : "LeatherLight"),
+            Rectangle().fill(ImagePaint(image: scheme == .dark ? Self.dark : Self.light,
                                         scale: metrics.pt(150) / 256))
             RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.10 : 0.35), .black.opacity(scheme == .dark ? 0.35 : 0.08)],
                            center: .top, startRadius: 0, endRadius: metrics.pt(900))

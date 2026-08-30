@@ -27,6 +27,9 @@ final class AppModel {
     private var fetchID = 0
     private var saved = false               // already in the library — a retry must not add it twice
     private var placeDone = false           // the place lookup for this shot has finished (or there is none)
+#if DEBUG
+    private let launchTime = Date()          // for the one-line startup timing print below
+#endif
 
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var shutterBreathing: Bool { naming }
@@ -40,13 +43,23 @@ final class AppModel {
 
     func start() {
         guard !configured else { camera.start(); location.start(); return }
-        Secret.seedIfNeeded()
-        do { try camera.configure() } catch { return }
         configured = true
         camera.onDidStartRunning = { [weak self] in
-            Task { @MainActor in self?.isLive = true }
+            Task { @MainActor in
+                self?.isLive = true
+                #if DEBUG
+                if let self { print("launch → isLive: \(Int(Date().timeIntervalSince(self.launchTime) * 1000)) ms") }
+                #endif
+            }
         }
-        camera.start(); location.start()
+        // Off the main thread: configure() and startRunning() are both
+        // blocking AVFoundation calls. Kick this off first, then the rest.
+        camera.configureAndStart { [weak self] error in
+            guard error != nil, let self else { return }
+            Task { @MainActor in self.configured = false }
+        }
+        Secret.seedIfNeeded()
+        location.start()
     }
     func stop() { camera.stop(); location.stop() }
 
@@ -61,7 +74,6 @@ final class AppModel {
             capturing = false
             guard let data = try? result.get() else { camera.freezePreview(false); return }
             full = data
-            preview = UIImage(data: data)
             self.fix = fix
             date = TakenDate.from(jpeg: data)
             place = nil
@@ -83,6 +95,10 @@ final class AppModel {
                 placeDone = true
             }
             fetchNames()
+            Task { [weak self] in
+                let image = await Task.detached(priority: .userInitiated) { UIImage(data: data) }.value
+                self?.preview = image
+            }
         }
     }
 
@@ -150,7 +166,9 @@ final class AppModel {
                 var extra: [CFString: Any] = [:]
                 Metadata.stamp(&extra, name: names.isEmpty ? nil : names[nameIndex], place: place)
                 let gps = fix.map { GPSDictionary.make(latitude: $0.0, longitude: $0.1) }
-                let square = try SquareCrop.centered(in: full, gps: gps, extra: extra)
+                let square = try await Task.detached(priority: .userInitiated) {
+                    try SquareCrop.centered(in: full, gps: gps, extra: extra)
+                }.value
                 if !saved {
                     try await PhotoSaver.saveAsFavorite(square)
                     saved = true

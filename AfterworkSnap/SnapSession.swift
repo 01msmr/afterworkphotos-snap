@@ -58,6 +58,21 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
     func start() { queue.async { [session] in if !session.isRunning { session.startRunning() } } }
     func stop()  { queue.async { [session] in if  session.isRunning { session.stopRunning() } } }
 
+    /// Configuration and `startRunning()` are both blocking calls — do the
+    /// whole thing on the session's own queue, never the main thread, and
+    /// call back on main with the result.
+    func configureAndStart(completion: @escaping @Sendable (Error?) -> Void) {
+        queue.async { [self] in
+            do {
+                try configure()
+                if !session.isRunning { session.startRunning() }
+                DispatchQueue.main.async { completion(nil) }
+            } catch {
+                DispatchQueue.main.async { completion(error) }
+            }
+        }
+    }
+
     /// Freezes (or unfreezes) the viewfinder on its last delivered frame,
     /// for the instant it takes the real capture to arrive — the preview
     /// layer's connection just stops accepting new frames.
