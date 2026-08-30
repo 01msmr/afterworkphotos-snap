@@ -155,6 +155,7 @@ final class AppModel {
 
     func retake() {
         namingTask?.cancel(); namingTask = nil; naming = false
+        fetchID += 1   // a late (cooperatively-cancelled but not-yet-resumed) fetch must not land after this
         placeTask?.cancel(); placeTask = nil
         previewTask?.cancel(); previewTask = nil
         camera.freezePreview(false)
