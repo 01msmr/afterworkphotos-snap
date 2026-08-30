@@ -1,13 +1,15 @@
 import SwiftUI
 import UIKit
 
-/// A recessed dark bezel holding a custom-drawn cylindrical "drum" — the
+/// A recessed bezel holding a custom-drawn cylindrical "drum" — the
 /// numbers "[n]" printed around a rolling drum, seen face-on — for
 /// stepping through the six suggested names, and the regenerate button
 /// (fetch six new names). `mirrored`: the drum and button swap sides
 /// (used when the whole panel sits on the left). The panel itself is a
-/// fixed 96 × 72 — only the drum inside it is custom-drawn; the button
-/// is unchanged apart from its new, smaller diameter.
+/// fixed 96 × 72; the drum's own face is deliberately the *opposite*
+/// tone of its panel in each colour scheme (light mode: dark panel, a
+/// light drum; dark mode: light panel, a dark drum), so it always reads
+/// as a lit cylinder recessed into its housing rather than one flat slab.
 struct ControlPanel: View {
     let count: Int
     @Binding var selection: Int
@@ -28,7 +30,7 @@ struct ControlPanel: View {
 
         ZStack {
             RoundedRectangle(cornerRadius: metrics.pt(10))
-                .fill(scheme == .dark ? Color(white: 0.16) : Color(white: 0.30))
+                .fill(scheme == .dark ? Color(white: 0.82) : Color(white: 0.30))
                 .overlay(                                        // inset: a blurred dark stroke inward
                     RoundedRectangle(cornerRadius: metrics.pt(10))
                         .inset(by: metrics.pt(1))
@@ -36,7 +38,7 @@ struct ControlPanel: View {
                         .blur(radius: metrics.pt(2))
                         .clipShape(RoundedRectangle(cornerRadius: metrics.pt(10)))
                 )
-                .overlay(RoundedRectangle(cornerRadius: metrics.pt(10)).stroke(.black.opacity(0.6), lineWidth: metrics.pt(1)))   // 1 pt darker rim
+                .overlay(RoundedRectangle(cornerRadius: metrics.pt(10)).stroke(.black.opacity(0.35), lineWidth: metrics.pt(1)))   // rim — kept visible even on the light (dark-mode) panel
                 .shadow(color: .white.opacity(0.15), radius: 0, y: metrics.pt(1))   // 1 pt lighter line under the bottom edge
 
             HStack(spacing: 0) {
@@ -56,36 +58,56 @@ struct ControlPanel: View {
         .brightness(enabled ? 0 : (scheme == .dark ? -0.1 : -0.18))
     }
 
-    /// A vertical cylinder, seen face-on, `pt(47) × pt(64)` (R = 32): the
-    /// "[n]" rows are printed around its circumference and roll past as
-    /// you drag. Each visible row sits at angle `θ = (i - position)·0.42`,
-    /// `y = R − R·sin θ`, scaled vertically by `cos θ` and faded by
-    /// `cos²θ` — dense and high-contrast at the centre, compressed and
-    /// faint near the rims, like a real cylinder; a thin separator line
-    /// (same mapping, at the half-angle between rows) marks each row
-    /// boundary. Dragging rotates `position` continuously; releasing
-    /// snaps to the nearest whole index with a spring. Disabled (and
-    /// greyed) before a shot — the rows still show, so the panel never
-    /// looks like a plain flat filler.
+    /// A vertical cylinder, seen face-on, `pt(47) × pt(54)` (R = 27; a
+    /// pt(9) margin top and bottom inside the 72 pt panel). The "[n]"
+    /// rows are printed around its circumference and roll past as you
+    /// drag. Each visible row sits at angle `θ = (i − position)·0.42`,
+    /// `y = R + R·sin θ` — at `position == 0`, row 0 ("[1]") sits exactly
+    /// at the vertical centre (`θ == 0`), later rows curve away *below*
+    /// it, and nothing renders above (there is no row `i < 0`) — scaled
+    /// vertically by `cos θ` and faded by `cos²θ`: dense and high-contrast
+    /// at the centre, compressed and faint near the rims, like a real
+    /// cylinder. A thin separator line (same mapping, at the half-angle
+    /// between rows) marks each row boundary. Dragging rotates `position`
+    /// continuously, about `pt(36)` of drag per row; releasing snaps to
+    /// the nearest whole index with a spring. Disabled (and greyed)
+    /// before a shot — the rows still show, so the panel never looks
+    /// like a plain flat filler.
     private var drum: some View {
         let width = metrics.pt(47)
-        let height = metrics.pt(64)
+        let height = metrics.pt(54)
         let R = height / 2
         let delta = 0.42
         let rowCount = max(count, 6)
         let isDark = scheme == .dark
-        let mid1 = isDark ? 0.20 : 0.28
-        let mid2 = isDark ? 0.42 : 0.55
+
+        // The drum is the opposite tone of its panel: light mode has a
+        // dark panel and a *light* drum (no black rim — a pale cylinder);
+        // dark mode has a light panel and the original *dark* drum
+        // (black rims fading up to a lit centre).
+        let gradient: Gradient = isDark
+            ? Gradient(stops: [
+                .init(color: .black, location: 0.0),
+                .init(color: Color(white: 0.20), location: 0.20),
+                .init(color: Color(white: 0.42), location: 0.50),
+                .init(color: Color(white: 0.20), location: 0.80),
+                .init(color: .black, location: 1.0),
+              ])
+            : Gradient(stops: [
+                .init(color: Color(white: 0.55), location: 0.0),
+                .init(color: Color(white: 0.80), location: 0.20),
+                .init(color: Color(white: 0.96), location: 0.50),
+                .init(color: Color(white: 0.80), location: 0.80),
+                .init(color: Color(white: 0.55), location: 1.0),
+              ])
+        let strokeColour: Color = isDark ? .black : .black.opacity(0.35)
+        let separatorOpacity = isDark ? 0.6 : 0.25
+        let realTextColour: Color = isDark ? .white : Color(white: 0.12)
+        let placeholderTextColour = Color(white: 0.55)
 
         return ZStack {
             RoundedRectangle(cornerRadius: metrics.pt(8))
-                .fill(LinearGradient(stops: [
-                    .init(color: .black, location: 0.0),
-                    .init(color: Color(white: mid1), location: 0.20),
-                    .init(color: Color(white: mid2), location: 0.50),
-                    .init(color: Color(white: mid1), location: 0.80),
-                    .init(color: .black, location: 1.0),
-                ], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(gradient: gradient, startPoint: .top, endPoint: .bottom))
                 .overlay(                                          // soft specular band, 42–50 % of height
                     LinearGradient(stops: [
                         .init(color: .clear, location: 0.0),
@@ -95,25 +117,25 @@ struct ControlPanel: View {
                         .init(color: .clear, location: 1.0),
                     ], startPoint: .top, endPoint: .bottom)
                 )
-                .overlay(RoundedRectangle(cornerRadius: metrics.pt(8)).stroke(.black, lineWidth: metrics.pt(1)))
+                .overlay(RoundedRectangle(cornerRadius: metrics.pt(8)).stroke(strokeColour, lineWidth: metrics.pt(1)))
 
             ForEach(0..<rowCount, id: \.self) { i in
                 let theta = (Double(i) - position) * delta
                 if abs(theta) < .pi / 2 {
                     Text("[\(i + 1)]")
                         .font(.system(size: metrics.pt(13), weight: .semibold, design: .monospaced))
-                        .foregroundStyle(count > 0 ? .white : Color(white: 0.55))
+                        .foregroundStyle(count > 0 ? realTextColour : placeholderTextColour)
                         .scaleEffect(x: 1, y: cos(theta))
                         .opacity(cos(theta) * cos(theta))
-                        .position(x: width / 2, y: R - R * sin(theta))
+                        .position(x: width / 2, y: R + R * sin(theta))
                 }
             }
             ForEach(0...rowCount, id: \.self) { i in
                 let theta = (Double(i) - 0.5 - position) * delta
                 if abs(theta) < .pi / 2 {
-                    Rectangle().fill(.black.opacity(0.5 * cos(theta)))
+                    Rectangle().fill(.black.opacity(separatorOpacity * cos(theta)))
                         .frame(width: width, height: metrics.pt(1))
-                        .position(x: width / 2, y: R - R * sin(theta))
+                        .position(x: width / 2, y: R + R * sin(theta))
                 }
             }
         }
@@ -134,8 +156,9 @@ struct ControlPanel: View {
                     }
                     let d = g.translation.height - lastTranslation
                     lastTranslation = g.translation.height
-                    // Dragging down rolls the cylinder to the next (higher) row.
-                    position += d / (R * delta)
+                    // Dragging down rolls the cylinder to the next (higher) row —
+                    // about pt(36) of drag per row.
+                    position += d / metrics.pt(36)
                     position = min(max(position, 0), Double(count - 1))
                     let rounded = Int(position.rounded())
                     if rounded != lastRounded {
