@@ -42,10 +42,14 @@ struct SlideView: View {
         let farAlign: Alignment = mirrored ? .leading : .trailing
         // The colour fill's own geometry — from the rest end to 4 pt beyond
         // the knob's far edge, so the fill encircles the knob (a 4 pt ring
-        // of colour around it) rather than stopping behind it. Label B's
-        // mask uses exactly this, so it can only ever show through where
-        // the fill already is.
-        let fillWidth: CGFloat = (enabled && offset > 0) ? metrics.pt(4) + offset + k + metrics.pt(4) : 0
+        // of colour around it) rather than stopping behind it. Always
+        // present (even at rest, offset == 0) so the active knob already
+        // sits in its ring before any sliding; inactive slides show the
+        // same ring, just in a darker grey, hinting where the colour will
+        // appear once enabled. Label B's mask uses exactly this rect in
+        // both cases, so it can only ever show through where the fill is.
+        let fillWidth: CGFloat = metrics.pt(4) + offset + k + metrics.pt(4)
+        let fillColour: Color = enabled ? colour : Color(white: 0.58)
         // The knob's own leading (outer-facing) edge, as a distance from
         // the rest edge — label A's mask is the strip from there to the
         // outer end, so the knob's advance is what wipes it away.
@@ -56,9 +60,7 @@ struct SlideView: View {
             Capsule().fill(Theme.track)
                 .overlay(Capsule().strokeBorder(.black.opacity(0.45), lineWidth: 1))
                 .shadow(color: .black.opacity(0.45), radius: 2, y: 2)   // recessed
-            if fillWidth > 0 {
-                Rectangle().fill(colour).frame(width: fillWidth).clipShape(Capsule())
-            }
+            Rectangle().fill(fillColour).frame(width: fillWidth).clipShape(Capsule())
             // Label A: fixed at the outer end, masked by the untravelled strip
             // between the knob's leading edge and the outer end.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(enabled ? .white : Color(white: 0.72))

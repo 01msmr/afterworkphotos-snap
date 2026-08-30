@@ -52,6 +52,7 @@ struct ControlPanel: View {
                     regenerateButton.padding(.trailing, metrics.pt(8))
                 }
             }
+            .frame(height: height)   // explicit, so the shorter drum visibly centres with the panel showing above/below it
         }
         .frame(width: width, height: height)
         .saturation(enabled ? 1 : 0)
@@ -75,7 +76,7 @@ struct ControlPanel: View {
     /// like a plain flat filler.
     private var drum: some View {
         let width = metrics.pt(47)
-        let height = metrics.pt(54)
+        let height = metrics.wheel - metrics.pt(18)   // pt(54): a pt(9) margin top and bottom inside the 72 pt panel
         let R = height / 2
         let delta = 0.42
         let rowCount = max(count, 6)
@@ -156,9 +157,11 @@ struct ControlPanel: View {
                     }
                     let d = g.translation.height - lastTranslation
                     lastTranslation = g.translation.height
-                    // Dragging down rolls the cylinder to the next (higher) row —
-                    // about pt(36) of drag per row.
-                    position += d / metrics.pt(36)
+                    // The rows follow the finger, like real cylinder under
+                    // your thumb: dragging down brings the previous (lower)
+                    // row into the centre; dragging up brings the next
+                    // (higher) row — about pt(36) of drag per row.
+                    position -= d / metrics.pt(36)
                     position = min(max(position, 0), Double(count - 1))
                     let rounded = Int(position.rounded())
                     if rounded != lastRounded {
