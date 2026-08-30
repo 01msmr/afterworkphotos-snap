@@ -136,7 +136,7 @@ struct ControlPanel: View {
                         .foregroundStyle(count > 0 ? realTextColour : placeholderTextColour)
                         .scaleEffect(x: 1, y: cos(theta))
                         .opacity(cos(theta) * cos(theta))
-                        .position(x: width / 2, y: R + R * sin(theta))
+                        .position(x: width / 2, y: R - R * sin(theta))
                 }
             }
             ForEach(0...rowCount, id: \.self) { i in
@@ -144,7 +144,7 @@ struct ControlPanel: View {
                 if abs(theta) < poleLimit {
                     Rectangle().fill(.black.opacity(separatorOpacity * cos(theta)))
                         .frame(width: width, height: metrics.pt(1))
-                        .position(x: width / 2, y: R + R * sin(theta))
+                        .position(x: width / 2, y: R - R * sin(theta))
                 }
             }
         }
@@ -169,7 +169,7 @@ struct ControlPanel: View {
                     // your thumb: dragging down brings the previous (lower)
                     // row into the centre; dragging up brings the next
                     // (higher) row — about pt(27) of drag per row.
-                    position -= d / metrics.pt(27)
+                    position += d / metrics.pt(27)
                     position = min(max(position, 0), Double(count - 1))
                     let rounded = Int(position.rounded())
                     if rounded != lastRounded {
