@@ -65,15 +65,22 @@ struct SlideView: View {
         // present (even at rest, offset == 0) so the active knob already
         // sits in its ring before any sliding; inactive slides show the
         // same ring, just in a darker grey, hinting where the colour will
-        // appear once enabled. Label B's mask uses exactly this rect in
-        // both cases, so it can only ever show through where the fill is.
+        // appear once enabled. The ring is solid — Label B must never
+        // show through it, so Label B's own mask (below) stops 4 pt
+        // before the knob's near edge, not at the fill's own far edge.
         let fillWidth: CGFloat = metrics.pt(4) + offset + k + metrics.pt(4)
         let fillColour: Color = enabled ? colour : Color(white: 0.58)
-        // The knob's own leading (outer-facing) edge, as a distance from
-        // the rest edge — label A's mask is the strip from there to the
-        // outer end, so the knob's advance is what wipes it away.
-        let knobLeadingEdge = metrics.pt(4) + offset + k
-        let labelAMaskWidth = max(0, w - knobLeadingEdge)
+        // The fill's start, up to 4 pt before the knob's near edge — i.e.
+        // excluding the knob and its solid ring. At rest (offset == 0)
+        // this is 0, so Label B is fully hidden until the knob has
+        // actually moved away from it.
+        let labelBMaskWidth = max(0, (metrics.pt(4) + offset) - metrics.pt(4))
+        // The ring's own OUTER edge (4 pt beyond the knob's leading edge —
+        // i.e. exactly `fillWidth`), as a distance from the rest end —
+        // label A's mask is the strip from there to the outer end, so the
+        // ring's advance (not just the knob's) is what wipes it away; the
+        // ring itself is always solid colour, never see-through.
+        let labelAMaskWidth = max(0, w - fillWidth)
 
         ZStack(alignment: restAlign) {
             Capsule().fill(Theme.track)
@@ -87,12 +94,13 @@ struct SlideView: View {
                 .padding(farEdge, metrics.labelInset)
                 .mask(alignment: farAlign) { Rectangle().frame(width: labelAMaskWidth) }
                 .transaction { $0.animation = nil }
-            // Label B: fixed 16 pt from the inner end, masked by the fill's
-            // own geometry — revealed exactly as the fill grows over it.
+            // Label B: fixed 16 pt from the inner end, masked by the fill
+            // MINUS the knob-and-ring — revealed only behind where the
+            // knob has already passed, never showing through the ring.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(enabled ? .white : Color(white: 0.72))
                 .frame(maxWidth: .infinity, alignment: restAlign)
                 .padding(restEdge, metrics.labelInset)
-                .mask(alignment: restAlign) { Rectangle().frame(width: fillWidth) }
+                .mask(alignment: restAlign) { Rectangle().frame(width: labelBMaskWidth) }
                 .transaction { $0.animation = nil }
             Color.clear.frame(width: k, height: k)
                 .modifier(Dome(radius: k / 2))

@@ -59,8 +59,9 @@ struct ControlPanel: View {
         .brightness(enabled ? 0 : (scheme == .dark ? -0.1 : -0.18))
     }
 
-    /// A vertical cylinder, seen face-on, `pt(47) × pt(54)` (R = 27; a
-    /// pt(9) margin top and bottom inside the 72 pt panel). The "[n]"
+    /// A vertical cylinder, seen face-on, `pt(42) × pt(62)` (R = 31; a
+    /// pt(5) margin top and bottom inside the 72 pt panel — taller, not
+    /// wider). The "[n]"
     /// rows are printed around its circumference and roll past as you
     /// drag. Each visible row sits at angle `θ = (i − position)·0.42`,
     /// `y = R + R·sin θ` — at `position == 0`, row 0 ("[1]") sits exactly
@@ -75,8 +76,8 @@ struct ControlPanel: View {
     /// before a shot — the rows still show, so the panel never looks
     /// like a plain flat filler.
     private var drum: some View {
-        let width = metrics.pt(47)
-        let height = metrics.wheel - metrics.pt(18)   // pt(54): a pt(9) margin top and bottom inside the 72 pt panel
+        let width = metrics.pt(42)
+        let height = metrics.wheel - metrics.pt(10)   // pt(62): a pt(5) margin top and bottom inside the 72 pt panel
         let R = height / 2
         let delta = 0.42
         let rowCount = max(count, 6)
