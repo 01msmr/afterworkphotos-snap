@@ -95,4 +95,16 @@ import ImageIO
         let p = TestJPEG.properties(of: try SquareCrop.centered(in: input))
         #expect(p[kCGImagePropertyGPSDictionary] == nil)
     }
+
+    @Test func extraPropertiesAreWrittenInTheSameEncode() throws {
+        let input = TestJPEG.make(width: 40, height: 30, tiff: [kCGImagePropertyTIFFMake: "Apple"])
+        var extra: [CFString: Any] = [:]
+        Metadata.stamp(&extra, name: "white keyboard", place: "Markdorf")
+        let p = TestJPEG.properties(of: try SquareCrop.centered(in: input, extra: extra))
+        let tiff = p[kCGImagePropertyTIFFDictionary] as? [CFString: Any]
+        #expect(tiff?[kCGImagePropertyTIFFImageDescription] as? String == "white keyboard")
+        #expect(tiff?[kCGImagePropertyTIFFMake] as? String == "Apple")   // merged, not replaced
+        let iptc = p[kCGImagePropertyIPTCDictionary] as? [CFString: Any]
+        #expect(iptc?[kCGImagePropertyIPTCCity] as? String == "Markdorf")
+    }
 }
