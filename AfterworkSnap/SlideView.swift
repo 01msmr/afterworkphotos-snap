@@ -50,8 +50,12 @@ struct SlideView: View {
                 .padding(farEdge, metrics.labelInset)
                 .transaction { $0.animation = nil }
             // Label B: the same word, fixed centred on the knob's resting
-            // position — under the knob, so it's covered at rest.
+            // position — under the knob, so it's covered at rest. Rendered
+            // at its natural width (`.fixedSize`) rather than clipped to
+            // the knob's own width, so it may peek out beside the knob —
+            // accepted, not a bug.
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
+                .fixedSize(horizontal: true, vertical: false)
                 .frame(width: k, alignment: .center)
                 .padding(restEdge, metrics.pt(4))
                 .transaction { $0.animation = nil }

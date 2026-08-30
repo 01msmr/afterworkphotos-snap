@@ -21,9 +21,9 @@ struct ControlPanel: View {
     var body: some View {
         let height = size
         let width = size * 4 / 3
-        let wheelW = metrics.pt(28)
+        let wheelW = metrics.pt(40)
         let wheelH = height - metrics.pt(12)
-        let pitch = metrics.pt(4)
+        let pitch = metrics.pt(3.5)
 
         ZStack {
             RoundedRectangle(cornerRadius: metrics.pt(10))
@@ -43,12 +43,11 @@ struct ControlPanel: View {
                     .gesture(DragGesture(minimumDistance: 2)
                         .onChanged { g in
                             guard enabled else { return }
-                            if !dragActive { dragActive = true; haptic.prepare() }
-                            // A new gesture that never reached onEnded (e.g. an
-                            // interrupted touch) can leave `lastTranslation`
-                            // stale; a sudden large drop in magnitude can only
-                            // mean this is really a fresh gesture restarting at 0.
-                            if abs(g.translation.height) + metrics.pt(20) < abs(lastTranslation) {
+                            // Reset only when a new gesture actually begins —
+                            // `dragActive` (not a magnitude heuristic) is the guard.
+                            if !dragActive {
+                                dragActive = true
+                                haptic.prepare()
                                 lastTranslation = 0
                             }
                             let delta = g.translation.height - lastTranslation
@@ -72,8 +71,8 @@ struct ControlPanel: View {
                     Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
                         .font(.system(size: metrics.pt(16), weight: .bold))
                         .foregroundStyle(enabled ? (scheme == .dark ? Theme.titleBlueDark : Theme.titleBlue) : Color(white: 0.48))
-                        .frame(width: metrics.pt(40), height: metrics.pt(40))
-                        .modifier(Dome(radius: metrics.pt(20)))
+                        .frame(width: metrics.pt(36), height: metrics.pt(36))
+                        .modifier(Dome(radius: metrics.pt(18)))
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, metrics.pt(8))
@@ -84,34 +83,47 @@ struct ControlPanel: View {
         .brightness(enabled ? 0 : (scheme == .dark ? -0.1 : -0.18))
     }
 
-    /// The knurled dial, seen edge-on: a cylinder's horizontal shading
-    /// (dark at the edges, lit in the centre), with fine ridges drawn over
-    /// it and scrolling with `ridgePhase`; the ridges' own alpha is
-    /// multiplied by that same shading (via `.mask`), so they read as
-    /// brighter in the centre and fade toward the edges, like a real
-    /// knurled surface. Rounded top/bottom ends (corner radius = half width).
+    /// The knurled dial, seen edge-on: everything — the cylinder's own
+    /// horizontal shading and the scrolling ridges over it — is drawn in a
+    /// single `Canvas`, no `.mask` (a mask over an already-opaque `Color`
+    /// fill is a no-op, which is why round 6/7's version rendered as flat
+    /// lines instead of a shaded dial). Each ridge band is itself filled
+    /// with the same left→centre→right gradient profile, at the band's
+    /// own colour and alpha, so the bands read strongly at the horizontal
+    /// centre and fade to nearly flat at the edges — a cylinder, not a
+    /// striped rectangle.
     private func thumbWheel(width: CGFloat, height: CGFloat, pitch: CGFloat) -> some View {
-        let band = pitch / 2
-        let cornerRadius = width / 2
-        let edgeShade = scheme == .dark ? 0.12 : 0.25
-        let centreShade = scheme == .dark ? 0.45 : 0.72
-        let cylinderShade = LinearGradient(colors: [Color(white: edgeShade), Color(white: centreShade), Color(white: edgeShade)],
-                                           startPoint: .leading, endPoint: .trailing)
-        return ZStack {
-            Rectangle().fill(cylinderShade)
-            Canvas { context, canvasSize in
-                let normalized = ridgePhase.truncatingRemainder(dividingBy: pitch)
-                var y = normalized >= 0 ? normalized - pitch : normalized
-                while y < canvasSize.height {
-                    context.fill(Path(CGRect(x: 0, y: y, width: canvasSize.width, height: band)), with: .color(Color(white: 0.28)))
-                    context.fill(Path(CGRect(x: 0, y: y + band, width: canvasSize.width, height: band)), with: .color(Color(white: 0.55)))
-                    y += pitch
-                }
+        let isDark = scheme == .dark
+        let edgeShade = isDark ? 0.10 : 0.22
+        let centreShade = isDark ? 0.50 : 0.78
+        let darkBand = metrics.pt(1.5)
+        let lightBand = metrics.pt(2)
+
+        return Canvas { context, size in
+            let start = CGPoint(x: 0, y: 0)
+            let end = CGPoint(x: size.width, y: 0)
+
+            // (a) the cylinder itself: one horizontal gradient across the whole capsule.
+            let baseGradient = Gradient(colors: [Color(white: edgeShade), Color(white: centreShade), Color(white: edgeShade)])
+            context.fill(Path(CGRect(origin: .zero, size: size)), with: .linearGradient(baseGradient, startPoint: start, endPoint: end))
+
+            // (b) ridges: dark and light bands, each its own left→centre→right alpha profile.
+            let darkGradient = Gradient(colors: [.black.opacity(0.6), .black.opacity(0.25), .black.opacity(0.6)])
+            let lightGradient = Gradient(colors: [.white.opacity(0.05), .white.opacity(0.55), .white.opacity(0.05)])
+
+            // (c) scroll the bands with the drag.
+            let normalized = ridgePhase.truncatingRemainder(dividingBy: pitch)
+            var y = normalized >= 0 ? normalized - pitch : normalized
+            while y < size.height {
+                context.fill(Path(CGRect(x: 0, y: y, width: size.width, height: darkBand)),
+                             with: .linearGradient(darkGradient, startPoint: start, endPoint: end))
+                context.fill(Path(CGRect(x: 0, y: y + darkBand, width: size.width, height: lightBand)),
+                             with: .linearGradient(lightGradient, startPoint: start, endPoint: end))
+                y += pitch
             }
-            .mask(cylinderShade)
         }
         .frame(width: width, height: height)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-        .overlay(RoundedRectangle(cornerRadius: cornerRadius).stroke(.black.opacity(0.6), lineWidth: metrics.pt(1)))
+        .clipShape(Capsule())                                              // (d)
+        .overlay(Capsule().stroke(.black.opacity(0.7), lineWidth: metrics.pt(1)))   // (e)
     }
 }

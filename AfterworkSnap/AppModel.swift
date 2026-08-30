@@ -27,6 +27,7 @@ final class AppModel {
     private var fetchID = 0
     private var saved = false               // already in the library — a retry must not add it twice
     private var placeDone = false           // the place lookup for this shot has finished (or there is none)
+    private var previewTask: Task<Void, Never>?   // decodes `preview`; cancelled on retake/post-success
 #if DEBUG
     private let launchTime = Date()          // for the one-line startup timing print below
 #endif
@@ -43,7 +44,6 @@ final class AppModel {
 
     func start() {
         guard !configured else { camera.start(); location.start(); return }
-        configured = true
         camera.onDidStartRunning = { [weak self] in
             Task { @MainActor in
                 self?.isLive = true
@@ -54,9 +54,10 @@ final class AppModel {
         }
         // Off the main thread: configure() and startRunning() are both
         // blocking AVFoundation calls. Kick this off first, then the rest.
+        // `configured` only becomes true once that has actually succeeded.
         camera.configureAndStart { [weak self] error in
-            guard error != nil, let self else { return }
-            Task { @MainActor in self.configured = false }
+            guard let self else { return }
+            Task { @MainActor in if error == nil { self.configured = true } }
         }
         Secret.seedIfNeeded()
         location.start()
@@ -95,8 +96,10 @@ final class AppModel {
                 placeDone = true
             }
             fetchNames()
-            Task { [weak self] in
+            previewTask?.cancel()
+            previewTask = Task { [weak self] in
                 let image = await Task.detached(priority: .userInitiated) { UIImage(data: data) }.value
+                guard !Task.isCancelled else { return }
                 self?.preview = image
             }
         }
@@ -137,6 +140,7 @@ final class AppModel {
     func retake() {
         namingTask?.cancel(); namingTask = nil; naming = false
         placeTask?.cancel(); placeTask = nil
+        previewTask?.cancel(); previewTask = nil
         camera.freezePreview(false)
         full = nil; preview = nil; names = []; sign = nil; phase = .live
         place = nil; date = nil; nameIndex = 0; showIndex = false
@@ -177,6 +181,7 @@ final class AppModel {
                 phase = .sent
                 sign = Strings.t(.postSent, language)
                 camera.freezePreview(false)
+                previewTask?.cancel(); previewTask = nil
                 self.full = nil; self.preview = nil; names = []
                 place = nil; date = nil; nameIndex = 0; showIndex = false
                 saved = false
