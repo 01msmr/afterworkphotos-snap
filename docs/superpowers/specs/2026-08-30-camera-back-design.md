@@ -1,12 +1,46 @@
 # afterworksnap — the camera back: design
 
-Date: 2026-08-30. Status: **designed, not built.** Builds on
-`2026-08-29-snap-design.md` (the pipeline, the endpoint, the contract with
-`ingest.sh`), which stays in force except where this document says otherwise.
-Mockup of record: `2026-08-30-camera-back-mockup.html` beside this file (v34 of
-the brainstorm; open it in a browser — four iPhones: live, just snapped,
-choosing a name, failed send). The two body textures live in
-`AfterworkSnap/Assets.xcassets/LeatherDark|LeatherLight.imageset`.
+Date: 2026-08-30. Status: **built and in use** (same day, ~25 device-driven
+rounds after the plan). Builds on `2026-08-29-snap-design.md` (the pipeline,
+the endpoint, the contract with `ingest.sh`), which stays in force except
+where this document says otherwise. Mockup of record:
+`2026-08-30-camera-back-mockup.html` beside this file (v34). The two body
+textures live in `AfterworkSnap/Assets.xcassets/LeatherDark|LeatherLight`.
+
+**As built — departures from the sections below, decided on the device:**
+
+- Layout below the print: LCD (24 below the print), then the shutter row
+  with the control panel hanging 12 below the LCD at the right (or left —
+  tapping the empty body on the other side moves it, remembered), then the
+  bottom row: retake slide · the `Snap` logo (19 pt) · post slide.
+- The name selector is a custom drum: a vertical cylinder (36 × 66 pt)
+  inside the 96 × 72 panel, `[1]…[6]` printed around it, rows 1.0 rad
+  apart, 22 pt of drag per row, snapping with a click; numbers run upward;
+  no wraparound. The regenerate button (Ø 30, blue arrows) beside it. Panel
+  and drum are inverted against the body per mode (light body → dark
+  panel → light drum; dark → light → dark).
+- Slides: width follows the label (min 96), knob Ø 32 sitting in a ring of
+  its colour (darker grey when inactive) already at rest; two fixed words
+  per slide — the resting one at the outer end, wiped away pixel by pixel
+  by the arriving colour, and the revealed one behind the knob, shown only
+  in the colour left behind. Inactive labels grey, active white.
+- Shutter: flat, iOS 26 Liquid Glass tinted red; locked = the darker red
+  `#9a0c06` desaturated; breathing while naming = red ⇄ `#9a0c06`, 1.6 s.
+- The snapped photo stays in the viewfinder (the live layer is frozen at
+  the tap) until retake or a finished post; `[1] name` is highlighted the
+  moment the names arrive; the AI names are always English.
+- Voice: saying "snap" (or "schnapp") takes the photo — on-device speech
+  recognition, listening only while live; microphone and speech
+  permissions.
+- Sounds: a tick on every drum step and slide fire, a paper crunch on
+  retake (both bundled, routed with the audio session so they follow
+  headphones), the system "mail sent" whoosh on a successful post (fixed
+  level, may play on the speaker). Tapping the logo plays the whoosh (a
+  test hook, left in).
+- Status bar hidden; launch screen = body colour, then the app icon in the
+  print until the camera runs; light/dark switch cross-fades in 0.3 s.
+- Camera configured off the main thread; crop, thumbnail and preview decode
+  off the main actor; a DEBUG print of launch → live.
 
 ## What changes
 
