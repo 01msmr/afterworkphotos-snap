@@ -175,6 +175,7 @@ struct ControlPanel: View {
                     if rounded != lastRounded {
                         lastRounded = rounded
                         haptic.selectionChanged()
+                        Sounds.play("tick")
                         selection = rounded
                     }
                 }

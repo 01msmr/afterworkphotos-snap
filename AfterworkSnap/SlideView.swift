@@ -112,7 +112,7 @@ struct SlideView: View {
                     let dx = mirrored ? -g.translation.width : g.translation.width
                     offset = min(max(0, dx), travel)
                 }.onEnded { _ in
-                    if enabled && progress >= 0.85 { onFire() }
+                    if enabled && progress >= 0.85 { Sounds.play("tick"); onFire() }
                     withAnimation(.spring(duration: 0.25)) { offset = 0 }
                 })
         }

@@ -185,6 +185,7 @@ final class AppModel {
     }
 
     func retake() {
+        Sounds.play("crunch")
         namingTask?.cancel(); namingTask = nil; naming = false
         fetchID += 1   // a late (cooperatively-cancelled but not-yet-resumed) fetch must not land after this
         placeTask?.cancel(); placeTask = nil
@@ -229,6 +230,7 @@ final class AppModel {
                 try await Uploader.send(square)
                 phase = .sent
                 sign = Strings.t(.postSent, language)
+                Sounds.playSystem(1001)   // the system "mail sent" whoosh
                 voiceTrigger.start()   // the shutter itself unlocks at .sent too — listen again from here
                 camera.freezePreview(false)
                 previewTask?.cancel(); previewTask = nil
