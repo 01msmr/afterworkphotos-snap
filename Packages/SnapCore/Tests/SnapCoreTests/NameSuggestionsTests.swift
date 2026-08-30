@@ -43,4 +43,12 @@ import Foundation
         #expect(NameSuggestions.parse(Data("nope".utf8)) == [])
         #expect(NameSuggestions.parse(reply("no array here")) == [])
     }
+    @Test func bracketInsideAStringIsNotTakenAsTheClose() {
+        let names = NameSuggestions.parse(reply(#"["a ] bracket","b"]"#))
+        #expect(names == ["a ] bracket", "b"])
+    }
+    @Test func skipsAnEarlierBracketThatIsNotTheArray() {
+        let names = NameSuggestions.parse(reply(#"see [1]: ["forest","trees"]"#))
+        #expect(names == ["forest", "trees"])
+    }
 }

@@ -13,4 +13,12 @@ import ImageIO
     @Test func garbageThrows() {
         #expect(throws: SnapError.decodeFailed) { try Thumbnail.make(from: Data([1, 2])) }
     }
+    @Test func rotatedNonSquareInputHasLongestSide200() throws {
+        let out = try Thumbnail.make(from: TestJPEG.make(width: 4032, height: 3024, orientation: 6))
+        let p = TestJPEG.properties(of: out)
+        let w = p[kCGImagePropertyPixelWidth] as! Int
+        let h = p[kCGImagePropertyPixelHeight] as! Int
+        #expect(max(w, h) == 200)
+        #expect(abs(min(w, h) - 150) <= 1)
+    }
 }

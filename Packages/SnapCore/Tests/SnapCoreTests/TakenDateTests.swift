@@ -12,4 +12,8 @@ import ImageIO
         #expect(TakenDate.from(jpeg: TestJPEG.make(width: 40, height: 30)) == nil)
         #expect(TakenDate.from(jpeg: Data([1, 2, 3])) == nil)
     }
+    @Test func placeholderDateIsNil() {
+        let jpeg = TestJPEG.make(width: 40, height: 30, exif: [kCGImagePropertyExifDateTimeOriginal: "0000:00:00 00:00:00"])
+        #expect(TakenDate.from(jpeg: jpeg) == nil)
+    }
 }
