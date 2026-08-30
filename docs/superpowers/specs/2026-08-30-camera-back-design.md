@@ -3,7 +3,7 @@
 Date: 2026-08-30. Status: **designed, not built.** Builds on
 `2026-08-29-snap-design.md` (the pipeline, the endpoint, the contract with
 `ingest.sh`), which stays in force except where this document says otherwise.
-Mockup of record: `.superpowers/brainstorm/13505-1788088646/content/flow-v10.html`
+Mockup of record: `.superpowers/brainstorm/13505-1788088646/content/flow-v11.html`
 (gitignored, on this Mac).
 
 ## What changes
@@ -25,11 +25,11 @@ iPhone and iPad alike; the status bar is hidden.
 | title band | top 12, height 44, 4 % sides | `snap` in the site's link colour (`blue` / `#9db8ff` dark), `.afterworkphotos` in the title colour (`#000` / `#fff`); right-aligned, 17 pt semibold |
 | print (viewfinder) | top 56, left 4 %, width 92 %, square | the site's deck print: 6 pt corners; `0 1px 0 edge-light, 1px 0 0 rgba(255,255,255,.3)` outside; inside `inset 0 3px 4px rgba(shade,.45), inset 0 1px 0 rgba(shade,.35), inset 3px 0 4px rgba(shade,.22), inset 0 -1px 0 rgba(255,255,255,.12)`; shade `40,30,20` light, `0,0,0` dark. Never carries text. |
 | logo `Snap` | 24 below the print, centred, 26 pt | silver gradient fill, thin black glossy outline; a physical badge on the body |
-| shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), a ridged collar; pulses (brightness 1 → 1.35, 1.1 s) while the AI is naming |
+| shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), a ridged collar; glows while the AI is naming: 1.4 s between a dark red (`#7a0500`) and a lit red (`#e0201a`) with a soft red halo |
 | Edit / wheel | Ø 72, right 4 %, bottom edge 12 above the LCD | one spot, two objects: the round *Edit* button, replaced instantly by the wheel when tapped |
 | LCD | 4 % sides, height 78, 32 below the shutter | green-grey (`#c9d3c2 → #b9c4b2`), dark ink `#1b2a1b`, recessed with a black 4 pt bezel; monospace 14 pt; three rows, labels 10 pt at the left (`name · loc · date` / `name · ort · datum`), empty content shown as `-` |
-| retake slide | bottom 30, left 4 %, 112 × 44 | mid-grey track `#8c8c8c`, white label, knob; track turns red (`#c8100a`) behind the knob as it slides; releases at the end |
-| post slide | bottom 30, right 4 %, 112 × 44 | same, turns green (`#1a9a3a`) |
+| retake slide | bottom 30, left 4 %, 96 × 44 | mid-grey track `#8c8c8c`, white label, knob; track turns red (`#c8100a`) behind the knob as it slides; releases at the end |
+| post slide | bottom 30, right 4 %, 96 × 44 | same, turns green (`#1a9a3a`) |
 
 The slides look the same in both modes. Everything else follows the mode.
 
