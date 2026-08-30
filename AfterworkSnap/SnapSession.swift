@@ -15,9 +15,23 @@ enum CaptureError: LocalizedError {
 /// Those are Camera.app features, not system behaviour.
 nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
     let session = AVCaptureSession()
+    let previewLayer: AVCaptureVideoPreviewLayer
     private let output = AVCapturePhotoOutput()
     private let queue = DispatchQueue(label: "snap.session")
     private var completion: ((Result<Data, Error>) -> Void)?
+    private var startObserver: NSObjectProtocol?
+    /// Fired (off the main thread) the first time the session actually starts running.
+    var onDidStartRunning: (() -> Void)?
+
+    override init() {
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        super.init()
+        previewLayer.videoGravity = .resizeAspectFill
+        startObserver = NotificationCenter.default.addObserver(forName: AVCaptureSession.didStartRunningNotification, object: session, queue: nil) { [weak self] _ in
+            self?.onDidStartRunning?()
+        }
+    }
+    deinit { if let startObserver { NotificationCenter.default.removeObserver(startObserver) } }
 
     func configure() throws {
         session.beginConfiguration()
@@ -43,6 +57,13 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
 
     func start() { queue.async { [session] in if !session.isRunning { session.startRunning() } } }
     func stop()  { queue.async { [session] in if  session.isRunning { session.stopRunning() } } }
+
+    /// Freezes (or unfreezes) the viewfinder on its last delivered frame,
+    /// for the instant it takes the real capture to arrive — the preview
+    /// layer's connection just stops accepting new frames.
+    func freezePreview(_ frozen: Bool) {
+        previewLayer.connection?.isEnabled = !frozen
+    }
 
     /// Full-sensor JPEG, delivered on the main queue. Not yet cropped.
     func capture(_ completion: @escaping (Result<Data, Error>) -> Void) {

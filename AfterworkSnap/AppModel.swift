@@ -17,6 +17,7 @@ final class AppModel {
     private(set) var date: String?
     private(set) var sign: String?          // "Post sent." / "SENDING ERROR"
     private(set) var naming = false         // true from fetchNames() start until this fetch lands
+    private(set) var isLive = false          // the session has delivered its first frame
     let camera = SnapSession()
     private let location = LocationSource()
     private var configured = false
@@ -25,6 +26,7 @@ final class AppModel {
     private var placeTask: Task<Void, Never>?
     private var fetchID = 0
     private var saved = false               // already in the library — a retry must not add it twice
+    private var placeDone = false           // the place lookup for this shot has finished (or there is none)
 
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var shutterBreathing: Bool { naming }
@@ -41,6 +43,9 @@ final class AppModel {
         Secret.seedIfNeeded()
         do { try camera.configure() } catch { return }
         configured = true
+        camera.onDidStartRunning = { [weak self] in
+            Task { @MainActor in self?.isLive = true }
+        }
         camera.start(); location.start()
     }
     func stop() { camera.stop(); location.stop() }
@@ -49,11 +54,12 @@ final class AppModel {
         guard !shutterLocked else { return }
         sign = nil
         capturing = true
+        camera.freezePreview(true)                 // instant still, until retake or a finished post
         let fix = location.usableFix
         camera.capture { [weak self] result in
             guard let self else { return }
             capturing = false
-            guard let data = try? result.get() else { return }
+            guard let data = try? result.get() else { camera.freezePreview(false); return }
             full = data
             preview = UIImage(data: data)
             self.fix = fix
@@ -63,9 +69,16 @@ final class AppModel {
             saved = false
             phase = .naming
             placeTask?.cancel()
-            placeTask = Task { [weak self] in
-                guard let self, let fix else { return }
-                self.place = await self.location.placeName(for: fix)
+            if let fix {
+                placeDone = false
+                placeTask = Task { [weak self] in
+                    guard let self else { return }
+                    self.place = await self.location.placeName(for: fix)
+                    self.placeDone = true
+                }
+            } else {
+                placeTask = nil
+                placeDone = true
             }
             fetchNames()
         }
@@ -99,6 +112,7 @@ final class AppModel {
     func retake() {
         namingTask?.cancel(); namingTask = nil; naming = false
         placeTask?.cancel(); placeTask = nil
+        camera.freezePreview(false)
         full = nil; preview = nil; names = []; sign = nil; phase = .live
         place = nil; date = nil; nameIndex = 0; showIndex = false
         saved = false
@@ -114,24 +128,14 @@ final class AppModel {
         namingTask?.cancel(); namingTask = nil; naming = false
         phase = .sending
         Task {
-            if place == nil, let fix {
-                if let placeTask {
-                    _ = await withTaskGroup(of: Void.self) { group in
-                        group.addTask { await placeTask.value }
-                        group.addTask { try? await Task.sleep(for: .seconds(3)) }
-                        await group.next()
-                        group.cancelAll()
-                    }
-                } else {
-                    let loc = location
-                    place = await withTaskGroup(of: String?.self) { group in
-                        group.addTask { await loc.placeName(for: fix) }
-                        group.addTask { try? await Task.sleep(for: .seconds(3)); return nil }
-                        let result = await group.next() ?? nil
-                        group.cancelAll()
-                        return result
-                    }
-                }
+            // Bounded poll, not a race: the bridged CLGeocoder call can't
+            // actually be cancelled, so this only bounds our own wait —
+            // whatever `place` holds once `placeDone` (or the 3 s cap) is
+            // what ships.
+            var waited = 0
+            while !placeDone && waited < 30 {
+                try? await Task.sleep(for: .milliseconds(100))
+                waited += 1
             }
             do {
                 var extra: [CFString: Any] = [:]
@@ -145,6 +149,7 @@ final class AppModel {
                 try await Uploader.send(square)
                 phase = .sent
                 sign = Strings.t(.postSent, language)
+                camera.freezePreview(false)
                 self.full = nil; self.preview = nil; names = []
                 place = nil; date = nil; nameIndex = 0; showIndex = false
                 saved = false

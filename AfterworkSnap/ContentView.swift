@@ -24,7 +24,10 @@ struct ContentView: View {
                     // the print — the captured photo stays up, above the live viewfinder,
                     // from the shutter release until retake or a finished post
                     ZStack {
-                        PreviewView(session: model.camera.session)
+                        PreviewView(layer: model.camera.previewLayer)
+                        if !model.isLive && model.preview == nil {
+                            Image("LaunchIcon").resizable().scaledToFill()
+                        }
                         if let image = model.preview {
                             Image(uiImage: image).resizable().scaledToFill()
                         }

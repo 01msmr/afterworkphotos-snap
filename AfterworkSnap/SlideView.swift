@@ -38,16 +38,19 @@ struct SlideView: View {
             if enabled && offset > 0 {
                 Rectangle().fill(colour).frame(width: metrics.pt(4) + offset + k / 2).clipShape(Capsule())
             }
-            // resting label: near edge 16 from the far (outer) end
+            // resting label: near edge 16 from the far (outer) end — fixed in place,
+            // never animated (not by the knob's spring, not by a POST/RETRY text change)
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: farAlign)
                 .padding(farEdge, metrics.labelInset)
                 .opacity(offset == 0 ? 1 : 0)
-            // the same word, fixed on the colour, near edge 16 from the inner end
+                .transaction { $0.animation = nil }
+            // the same word, fixed on the colour, near edge 16 from the inner end — likewise fixed
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: restAlign)
                 .padding(restEdge, metrics.labelInset)
                 .opacity(offset == 0 ? 0 : 1)
+                .transaction { $0.animation = nil }
             Color.clear.frame(width: k, height: k)
                 .modifier(Dome(radius: k / 2))
                 .saturation(enabled ? 1 : 0).brightness(enabled ? 0 : -0.15)
