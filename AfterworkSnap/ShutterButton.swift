@@ -10,9 +10,11 @@ struct ShutterButton: View {
     let action: () -> Void
     @State private var lit = false
 
-    private var base: some View {
+    /// `opaque`: the flat fallback needs a fully opaque red; under the
+    /// iOS 26 glass effect a translucent base lets the tint/highlights show.
+    private func base(opaque: Bool) -> some View {
         ZStack {
-            Circle().fill(Theme.shutterMid)
+            Circle().fill(Theme.shutterMid.opacity(opaque ? 1 : 0.55))
             Circle().fill(Theme.breathTop)
                 .opacity(lit ? 1 : 0)
                 .animation(breathing ? .easeInOut(duration: 1.6).repeatForever(autoreverses: true) : .linear(duration: 0.2), value: lit)
@@ -24,9 +26,9 @@ struct ShutterButton: View {
         Button(action: { if !locked { action() } }) {
             Group {
                 if #available(iOS 26, *) {
-                    base.glassEffect(.regular.tint(Theme.shutterMid).interactive(), in: .circle)
+                    base(opaque: false).glassEffect(.regular.tint(Theme.shutterMid).interactive(), in: .circle)
                 } else {
-                    base.overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 1 * s))
+                    base(opaque: true).overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 1 * s))
                 }
             }
             .overlay(Circle().stroke(.black.opacity(0.25), lineWidth: 1 * s))

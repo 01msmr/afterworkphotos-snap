@@ -36,9 +36,15 @@ struct ControlPanel: View {
 
             HStack(spacing: 0) {
                 thumbWheel(width: wheelW, height: wheelH, pitch: pitch)
-                    .padding(.leading, metrics.pt(8))
                     .gesture(DragGesture(minimumDistance: 2).onChanged { g in
                         guard enabled else { return }
+                        // A new gesture that never reached onEnded (e.g. an
+                        // interrupted touch) can leave `lastTranslation`
+                        // stale; a sudden large drop in magnitude can only
+                        // mean this is really a fresh gesture restarting at 0.
+                        if abs(g.translation.height) + metrics.pt(20) < abs(lastTranslation) {
+                            lastTranslation = 0
+                        }
                         let delta = g.translation.height - lastTranslation
                         lastTranslation = g.translation.height
                         ridgePhase += delta
@@ -47,6 +53,7 @@ struct ControlPanel: View {
                         while stepAccumulator <= -step { stepAccumulator += step; onStep(1) }
                         while stepAccumulator >= step { stepAccumulator -= step; onStep(-1) }
                     }.onEnded { _ in lastTranslation = 0; stepAccumulator = 0 })
+                    .padding(.leading, metrics.pt(8))
                 Spacer(minLength: 0)
                 Button(action: { if enabled { onCenter() } }) {
                     Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")

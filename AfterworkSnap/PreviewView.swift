@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import QuartzCore
 
 /// Installs the session's own preview layer as a sublayer, so freezing it
 /// (see `SnapSession.freezePreview`) freezes exactly what's on screen.
@@ -10,7 +11,10 @@ struct PreviewView: UIViewRepresentable {
         var previewLayer: AVCaptureVideoPreviewLayer?
         override func layoutSubviews() {
             super.layoutSubviews()
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
             previewLayer?.frame = bounds
+            CATransaction.commit()
         }
     }
 
@@ -21,6 +25,9 @@ struct PreviewView: UIViewRepresentable {
         return v
     }
     func updateUIView(_ uiView: View, context: Context) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         uiView.previewLayer?.frame = uiView.bounds
+        CATransaction.commit()
     }
 }

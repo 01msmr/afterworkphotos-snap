@@ -17,7 +17,7 @@ final class AppModel {
     private(set) var date: String?
     private(set) var sign: String?          // "Post sent." / "SENDING ERROR"
     private(set) var naming = false         // true from fetchNames() start until this fetch lands
-    private(set) var isLive = false          // the session has delivered its first frame
+    private(set) var isLive = false          // the session has started running
     let camera = SnapSession()
     private let location = LocationSource()
     private var configured = false
@@ -73,7 +73,9 @@ final class AppModel {
                 placeDone = false
                 placeTask = Task { [weak self] in
                     guard let self else { return }
-                    self.place = await self.location.placeName(for: fix)
+                    let name = await self.location.placeName(for: fix)
+                    guard !Task.isCancelled else { return }
+                    self.place = name
                     self.placeDone = true
                 }
             } else {
