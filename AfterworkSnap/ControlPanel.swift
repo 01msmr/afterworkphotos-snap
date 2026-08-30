@@ -59,27 +59,30 @@ struct ControlPanel: View {
         .brightness(enabled ? 0 : (scheme == .dark ? -0.1 : -0.18))
     }
 
-    /// A vertical cylinder, seen face-on, `pt(42) × pt(62)` (R = 31; a
-    /// pt(5) margin top and bottom inside the 72 pt panel — taller, not
-    /// wider). The "[n]"
-    /// rows are printed around its circumference and roll past as you
-    /// drag. Each visible row sits at angle `θ = (i − position)·0.42`,
-    /// `y = R + R·sin θ` — at `position == 0`, row 0 ("[1]") sits exactly
-    /// at the vertical centre (`θ == 0`), later rows curve away *below*
-    /// it, and nothing renders above (there is no row `i < 0`) — scaled
-    /// vertically by `cos θ` and faded by `cos²θ`: dense and high-contrast
-    /// at the centre, compressed and faint near the rims, like a real
-    /// cylinder. A thin separator line (same mapping, at the half-angle
-    /// between rows) marks each row boundary. Dragging rotates `position`
-    /// continuously, about `pt(36)` of drag per row; releasing snaps to
-    /// the nearest whole index with a spring. Disabled (and greyed)
-    /// before a shot — the rows still show, so the panel never looks
-    /// like a plain flat filler.
+    /// A vertical cylinder, seen face-on, `pt(36) × pt(66)` (R = 33; a
+    /// pt(3) margin top and bottom inside the 72 pt panel — narrow and
+    /// tall, so the rows actually reach the rims). The "[n]" rows are
+    /// printed around its circumference and roll past as you drag. Each
+    /// visible row sits at angle `θ = (i − position)·0.55`, `y = R + R·sin
+    /// θ` — at `position == 0`, row 0 ("[1]") sits exactly at the
+    /// vertical centre (`θ == 0`), the neighbour rows land at `y ≈ R ±
+    /// 17` and the next at `y ≈ R ± 31` (close to the rims), and nothing
+    /// renders above (there is no row `i < 0`) — scaled vertically by
+    /// `cos θ` and faded by `cos²θ`: dense and high-contrast at the
+    /// centre, compressed and faint near the rims, like a real cylinder.
+    /// Rows draw out almost to the pole (`|θ| < (π/2)·0.98`, not a full
+    /// `π/2`, so the compression stays finite). A thin separator line
+    /// (same mapping, at the half-angle between rows) marks each row
+    /// boundary. Dragging rotates `position` continuously, about
+    /// `pt(36)` of drag per row; releasing snaps to the nearest whole
+    /// index with a spring. Disabled (and greyed) before a shot — the
+    /// rows still show, so the panel never looks like a plain flat
+    /// filler.
     private var drum: some View {
-        let width = metrics.pt(42)
-        let height = metrics.wheel - metrics.pt(10)   // pt(62): a pt(5) margin top and bottom inside the 72 pt panel
+        let width = metrics.pt(36)
+        let height = metrics.wheel - metrics.pt(6)   // pt(66): a pt(3) margin top and bottom inside the 72 pt panel
         let R = height / 2
-        let delta = 0.42
+        let delta = 0.55
         let rowCount = max(count, 6)
         let isDark = scheme == .dark
 
@@ -87,19 +90,22 @@ struct ControlPanel: View {
         // dark panel and a *light* drum (no black rim — a pale cylinder);
         // dark mode has a light panel and the original *dark* drum
         // (black rims fading up to a lit centre).
+        // The dark rims now occupy only the outer 6 % each — most of the
+        // face is the lit midtone, matching how narrow a band the rows
+        // actually compress into near the poles.
         let gradient: Gradient = isDark
             ? Gradient(stops: [
                 .init(color: .black, location: 0.0),
-                .init(color: Color(white: 0.20), location: 0.20),
+                .init(color: Color(white: 0.20), location: 0.06),
                 .init(color: Color(white: 0.42), location: 0.50),
-                .init(color: Color(white: 0.20), location: 0.80),
+                .init(color: Color(white: 0.20), location: 0.94),
                 .init(color: .black, location: 1.0),
               ])
             : Gradient(stops: [
                 .init(color: Color(white: 0.55), location: 0.0),
-                .init(color: Color(white: 0.80), location: 0.20),
+                .init(color: Color(white: 0.80), location: 0.06),
                 .init(color: Color(white: 0.96), location: 0.50),
-                .init(color: Color(white: 0.80), location: 0.80),
+                .init(color: Color(white: 0.80), location: 0.94),
                 .init(color: Color(white: 0.55), location: 1.0),
               ])
         let strokeColour: Color = isDark ? .black : .black.opacity(0.35)
@@ -121,11 +127,12 @@ struct ControlPanel: View {
                 )
                 .overlay(RoundedRectangle(cornerRadius: metrics.pt(8)).stroke(strokeColour, lineWidth: metrics.pt(1)))
 
+            let poleLimit = (Double.pi / 2) * 0.98
             ForEach(0..<rowCount, id: \.self) { i in
                 let theta = (Double(i) - position) * delta
-                if abs(theta) < .pi / 2 {
+                if abs(theta) < poleLimit {
                     Text("[\(i + 1)]")
-                        .font(.system(size: metrics.pt(13), weight: .semibold, design: .monospaced))
+                        .font(.system(size: metrics.pt(14), weight: .semibold, design: .monospaced))
                         .foregroundStyle(count > 0 ? realTextColour : placeholderTextColour)
                         .scaleEffect(x: 1, y: cos(theta))
                         .opacity(cos(theta) * cos(theta))
@@ -134,7 +141,7 @@ struct ControlPanel: View {
             }
             ForEach(0...rowCount, id: \.self) { i in
                 let theta = (Double(i) - 0.5 - position) * delta
-                if abs(theta) < .pi / 2 {
+                if abs(theta) < poleLimit {
                     Rectangle().fill(.black.opacity(separatorOpacity * cos(theta)))
                         .frame(width: width, height: metrics.pt(1))
                         .position(x: width / 2, y: R + R * sin(theta))
