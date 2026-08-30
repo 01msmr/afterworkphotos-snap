@@ -19,7 +19,7 @@ struct ControlPanel: View {
 
         ZStack {
             RoundedRectangle(cornerRadius: metrics.pt(10))
-                .fill(scheme == .dark ? Color(white: 0.16) : Color(white: 0.82))
+                .fill(scheme == .dark ? Color(white: 0.16) : Color(white: 0.30))
                 .overlay(                                        // inset: a blurred dark stroke inward
                     RoundedRectangle(cornerRadius: metrics.pt(10))
                         .inset(by: metrics.pt(1))
@@ -48,19 +48,28 @@ struct ControlPanel: View {
     }
 
     /// The system's own wheel picker, styled as the LCD's "drum": one row
-    /// per suggested name, "[n]"; with no names yet, a single disabled "-".
+    /// per suggested name, "[n]"; with no names yet, six placeholder rows
+    /// "[1]"…"[6]" (dimmer text, disabled) — never a lone "-". Row text is
+    /// forced white in both colour schemes (the panel is always dark), and
+    /// the whole picker is forced to `.dark` in case `.pickerStyle(.wheel)`
+    /// ignores `.foregroundStyle` on its own chrome.
     private var drum: some View {
         Picker("", selection: $selection) {
             if count > 0 {
                 ForEach(0..<count, id: \.self) { i in
-                    Text("[\(i + 1)]").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced)).tag(i)
+                    Text("[\(i + 1)]").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white).tag(i)
                 }
             } else {
-                Text("-").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced)).tag(0)
+                ForEach(0..<6, id: \.self) { i in
+                    Text("[\(i + 1)]").font(.system(size: metrics.pt(15), weight: .semibold, design: .monospaced))
+                        .foregroundStyle(Color(white: 0.55)).tag(i)
+                }
             }
         }
         .pickerStyle(.wheel)
         .labelsHidden()
+        .environment(\.colorScheme, .dark)
         .frame(width: metrics.pt(48), height: metrics.pt(72))
         .clipShape(RoundedRectangle(cornerRadius: metrics.pt(8)))
         .disabled(!enabled || count == 0)
