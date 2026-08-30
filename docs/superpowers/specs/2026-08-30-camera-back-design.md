@@ -19,7 +19,7 @@ name for each photo with alternatives to choose from by wheel, and nothing to
 type: what the LCD shows is what gets posted. Vertical only, on iPhone and
 iPad alike; the status bar is hidden.
 
-## Screen, in points (iPhone 393 × 852; the iPad scales the same arrangement)
+## Screen, in points (iPhone 393 × 852; the iPad uses the same point sizes, unscaled)
 
 | element | position | notes |
 |---|---|---|
@@ -28,24 +28,24 @@ iPad alike; the status bar is hidden.
 | print (viewfinder) | top 56, left 4 %, width 92 %, square | the site's deck print: 6 pt corners; outside `0 1px 0 edge-light, 1px 0 0 rgba(255,255,255,.3)`; inside `inset 0 3px 4px rgba(shade,.45), inset 0 1px 0 rgba(shade,.35), inset 3px 0 4px rgba(shade,.22), inset 0 -1px 0 rgba(255,255,255,.12)`; shade `40,30,20` light, `0,0,0` dark; edge-light `rgba(255,255,255,.55)` / `.14`. Never carries text. |
 | logo `Snap` | 24 below the print, centred, 26 pt italic black-weight serif | silver gradient fill (`#fdfdfb → #b8b8b4 → #8d8d89 → #dcdcd8`), thin black glossy outline; a physical badge |
 | shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), ridged collar. **Naming:** a darker layer (`#6a0400 → #3a0200`) breathes over it slowly, 3.2 s. **After a shot** (naming, choosing, failed send): locked — desaturated and dimmed, does nothing — until retake or a finished post. |
-| wheel | Ø 72, right 4 %, bottom edge 12 above the LCD | always present: ridged rim, domed centre button with Font Awesome `arrows-rotate` in the site's blue. Before a shot: greyed — desaturated and dimmed, fully opaque, icon `#7a7a7a` |
+| wheel | Ø 72, right 4 %, bottom edge 12 above the LCD | always present: ridged rim, domed centre button with a small grey rotate-arrows glyph (`#737373`; `#999` when inactive). Before a shot: greyed — desaturated and dimmed, fully opaque |
 | LCD | 4 % sides, height 78, 32 below the shutter | green-grey (`#c9d3c2 → #b9c4b2`), ink `#1b2a1b`, recessed, black 4 pt bezel; monospace 14 pt; three rows, labels 10 pt at the left, empty content `-` |
-| retake slide | bottom 30, left 4 %, 104 × 40 | mirrored: knob at rest at the inner (right) end, slides outward to the left; label 16 pt from the track's left end — the same margin as post's |
-| post slide | bottom 30, right 4 %, 104 × 40 | knob at rest at the inner (left) end, slides outward to the right; label 16 pt from the track's right end |
+| retake slide | bottom 30, left 4 %, 124 × 40 | mirrored: knob at rest at the inner (right) end, slides outward to the left; label 16 pt from the track's left end — the same margin as post's |
+| post slide | bottom 30, right 4 %, 124 × 40 | knob at rest at the inner (left) end, slides outward to the right; label 16 pt from the track's right end |
 
 **Slides.** Track mid-grey `#8c8c8c`, knob Ø 32 domed; the label is white
 at all times, also when inactive (only the knob greys). While the knob
 moves, the track fills behind it — red `#c8100a` for retake, green `#1a9a3a`
 for post — the resting label hides and the same word shows fixed in the
 filled part, 16 pt from that end of the track — both labels stand still. Release past 85 % of the travel fires; below, the knob snaps
-back. The slides look the same in both modes.
+back. Inactive slides show no colour at all, not even behind the knob. The slides look the same in both modes.
 
 ### Body material
 
 A soft pebble relief, generated (random grain → blur → lit from the
 top-left), seamless, tiled at 150 pt. Two PNGs in the asset catalog:
-`leather-dark` (contrast −78) on `#161616`, `leather-light` (contrast −76,
-tinted) on `#dedede` — the site's paper tone. Over it a wide radial top
+`leather-dark` (mean ≈ 45/255) and `leather-light` (mean ≈ 174/255, tinted
+`#cfcfcb`); the tile is opaque and covers the whole body. Over it a wide radial top
 light. Buttons are domed (radial highlight top-left, dark rim, small drop
 shadow). Mode follows the system.
 
@@ -148,8 +148,12 @@ also a horizontal swipe on the `name` row), `SlideView` (drag with the 85 %
 threshold, mirrored variant, fill colour, label swap), `LCDView`, `Leather`
 (the tiled image as a `ShapeStyle`), the shutter's two breathing layers, and
 `AppModel` with the phases above. Status bar hidden; the layout ignores the
-top safe area and uses the constants above. iPad: the same constants scaled
-by width/393, vertical only.
+top safe area and uses the constants above. iPad: the same constants,
+unscaled — the site's vertical layout, title band 12 pt from the top, the
+print centred at 92 % of the width or as wide as the height allows once the
+unscaled stack below it is subtracted (≈ 91 % on a 10.9"); vertical only.
+The snapped photo stays in the viewfinder from the shot until retake or a
+finished post.
 
 ## Testing
 
