@@ -151,7 +151,7 @@ final class AppModel {
         }
         #endif
         namingTask = Task {
-            let got = await Namer.suggest(for: full, language: language)
+            let got = await Namer.suggest(for: full, language: .en)   // the site captions in English, whatever the UI language
             guard myID == fetchID, !Task.isCancelled else { return }   // superseded or cancelled: do nothing
             names = got; nameIndex = 0
             showIndex = true   // "[1] <name>" inverted at once, not just after the first manual step

@@ -88,7 +88,7 @@ otherwise. No switch.
 | post sent | Post sent. | Gesendet. |
 | sending error | SENDING ERROR | SENDEFEHLER |
 
-The AI names are asked for in the language in use.
+The AI names are always asked for in English — the site's captions are English, whatever the UI language.
 
 ## The AI names
 
@@ -99,7 +99,7 @@ key is readable to anyone holding the unlocked phone and its bundle;
 rotating it is a rebuild. Model `claude-haiku-4-5`, the 200 px thumbnail as
 input (as the ingest sends), one request returning **six** alternatives as a
 JSON array of strings; the ingest's own caption prompt, extended by "give six
-different candidates, most literal first" and the language. 30 s timeout;
+different candidates, most literal first"; always English. 30 s timeout;
 any failure leaves `name` at `-`. Cost ≈ half a cent per request.
 
 ## Where the values go: inside the JPEG
