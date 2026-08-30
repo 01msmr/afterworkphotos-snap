@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// A knob you drag along a track. Fires past 85 %; snaps back below.
 /// `mirrored`: knob at rest at the right, travels left (retake).
@@ -7,6 +8,13 @@ import SwiftUI
 /// offset 0) and the far edge (where it travels to, and fires) are simply
 /// swapped between `.leading` and `.trailing` depending on `mirrored`, so
 /// the label text is never drawn backwards.
+///
+/// The track's own width follows its label — `sizingLabels` lists every
+/// word this slide might ever show (for the post slide, both POST/POSTEN
+/// and RETRY/ERNEUT, so its width never jumps when the label changes);
+/// the width is the widest of those, measured with the same weight/size
+/// the label itself renders at, plus the knob, its gap, and the label's
+/// outer margin on both sides — never narrower than a pt(96) minimum.
 ///
 /// Two labels, both always drawn — nothing is ever hidden by opacity
 /// anywhere, only by masks tied to real geometry:
@@ -28,14 +36,25 @@ struct SlideView: View {
     let mirrored: Bool
     let enabled: Bool
     let metrics: Metrics
+    let sizingLabels: [String]
     let onFire: () -> Void
     @State private var offset: CGFloat = 0
 
-    private var travel: CGFloat { metrics.slideW - metrics.knob - metrics.pt(8) }
+    /// The knob, its gap, the widest label this slide can show, and the
+    /// label's own margin on both sides — never below the pt(96) minimum.
+    private var width: CGFloat {
+        let font = UIFont.systemFont(ofSize: metrics.pt(12), weight: .semibold)
+        let widest = sizingLabels
+            .map { ($0 as NSString).size(withAttributes: [.font: font]).width }
+            .max() ?? 0
+        let natural = metrics.knob + metrics.pt(8) + widest + 2 * metrics.labelInset
+        return max(metrics.pt(96), natural)
+    }
+    private var travel: CGFloat { width - metrics.knob - metrics.pt(8) }
     private var progress: CGFloat { offset / travel }
 
     var body: some View {
-        let w = metrics.slideW, h = metrics.slideH, k = metrics.knob
+        let w = width, h = metrics.slideH, k = metrics.knob
         let restEdge: Edge.Set = mirrored ? .trailing : .leading
         let farEdge: Edge.Set = mirrored ? .leading : .trailing
         let restAlign: Alignment = mirrored ? .trailing : .leading

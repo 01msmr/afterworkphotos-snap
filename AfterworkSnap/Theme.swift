@@ -37,7 +37,6 @@ struct Metrics {
     var wheel: CGFloat { pt(72) }
     var gapLCD: CGFloat { pt(32) }
     var lcdHeight: CGFloat { pt(78) }
-    var slideW: CGFloat { pt(124) }
     var slideH: CGFloat { pt(40) }
     var knob: CGFloat { pt(32) }
     var slideBottom: CGFloat { pt(30) }

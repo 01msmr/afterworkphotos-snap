@@ -97,9 +97,9 @@ struct ContentView: View {
                 }
                 VStack { Spacer()
                     HStack {
-                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m) { model.retake() }
+                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)]) { model.retake() }
                         Spacer()
-                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m) { model.post() }
+                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)]) { model.post() }
                     }
                     .padding(.horizontal, side).padding(.bottom, m.slideBottom)
                 }
