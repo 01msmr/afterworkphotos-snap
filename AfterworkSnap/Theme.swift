@@ -35,7 +35,7 @@ struct Metrics {
     var titleHeight: CGFloat { pt(44) }
     var printTop: CGFloat { pt(56) }
     var gapLogo: CGFloat { pt(24) }
-    var logoSize: CGFloat { pt(19.5) }   // 25 % smaller than the first 26
+    var logoSize: CGFloat { pt(19) }
     var gapShutter: CGFloat { pt(24) }
     var shutter: CGFloat { pt(96) }
     var wheel: CGFloat { pt(72) }
