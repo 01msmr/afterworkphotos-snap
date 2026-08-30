@@ -1,81 +1,78 @@
 import SwiftUI
+import SnapCore
 
-/// The site's phone layout, in points: a band of fixed height below the
-/// status inset holds the title at the right; the square starts at the
-/// band's foot; side margins are 4 % of the width.
 struct ContentView: View {
     @State private var model = AppModel()
-    private let topGap: CGFloat = 12
-    private let titleBand: CGFloat = 44
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         GeometryReader { geo in
-            let side = geo.size.width * 0.04
-            let square = geo.size.width - 2 * side
-            VStack(alignment: .trailing, spacing: 0) {
-                // the site's title link colour (CSS blue) for "snap"
-                (Text("snap").foregroundStyle(Color(red: 0, green: 0, blue: 1))
-                 + Text(".afterworkphotos").foregroundStyle(.white))
-                    .font(.system(size: 17, weight: .medium))
-                    .frame(height: titleBand)
-
-                ZStack {
-                    PreviewView(session: model.camera.session)
-                    if let data = model.square, let image = UIImage(data: data) {
-                        Image(uiImage: image).resizable().scaledToFill()
+            let m = Metrics(width: geo.size.width)
+            let side = geo.size.width * m.side
+            let print = geo.size.width - 2 * side
+            let lang = model.language
+            ZStack(alignment: .top) {
+                Leather(metrics: m)
+                VStack(spacing: 0) {
+                    // title band: just "snap", right-aligned, 3 pt inside the print's right edge
+                    (Text("snap").foregroundStyle(Theme.title(scheme))
+                     + Text(UIDevice.current.userInterfaceIdiom == .pad ? ".afterworkphotos" : "").foregroundStyle(scheme == .dark ? .white : .black))
+                        .font(.system(size: m.pt(17), weight: .semibold))
+                        .frame(maxWidth: .infinity, alignment: .trailing).frame(height: m.titleHeight)
+                        .padding(.trailing, side + m.pt(3)).padding(.leading, side)
+                        .padding(.top, m.titleTop)
+                    // the print
+                    ZStack {
+                        PreviewView(session: model.camera.session)
+                        if let data = model.full, let image = UIImage(data: data) {
+                            Image(uiImage: image).resizable().scaledToFill()
+                        }
                     }
+                    .frame(width: print, height: print)
+                    .clipShape(RoundedRectangle(cornerRadius: m.pt(6)))
+                    .overlay(RoundedRectangle(cornerRadius: m.pt(6)).stroke(Theme.shade(scheme).opacity(0.35), lineWidth: 1))
+                    .overlay(                                                // letterpress: top and left wall in shadow
+                        RoundedRectangle(cornerRadius: m.pt(6))
+                            .inset(by: 0.5)
+                            .stroke(Theme.shade(scheme).opacity(0.45), lineWidth: 3)
+                            .blur(radius: 3)
+                            .mask(RoundedRectangle(cornerRadius: m.pt(6)))
+                            .mask(LinearGradient(colors: [.black, .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    )
+                    .shadow(color: Theme.edgeLight(scheme), radius: 0, y: 1)
+                    .padding(.top, m.printTop - m.titleTop - m.titleHeight)
+                    LogoView(size: m.logoSize).padding(.top, m.gapLogo)
+                    ZStack {
+                        ShutterButton(size: m.shutter, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
+                        HStack { Spacer()
+                            WheelView(size: m.wheel, enabled: model.controlsEnabled, onStep: { model.step($0) }, onCenter: { model.fetchNames() })
+                                .padding(.trailing, side)
+                        }
+                        .offset(y: (m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12))   // bottom edge 12 above the LCD
+                    }
+                    .padding(.top, m.gapShutter)
+                    LCDView(rows: [LCDRow(id: .name, value: model.nameRow),
+                                   LCDRow(id: .loc, value: model.place ?? Strings.t(.empty, lang)),
+                                   LCDRow(id: .date, value: model.date ?? Strings.t(.empty, lang))],
+                            invertedRow: model.showIndex ? .name : nil,
+                            sign: model.sign, signTwitching: model.phase == .failed,
+                            language: lang, metrics: m, onNameSwipe: { model.step($0) })
+                        .padding(.horizontal, side).padding(.top, m.gapLCD)
+                    Spacer(minLength: 0)
                 }
-                .frame(width: square, height: square)
-                .clipped()
-
-                controls
-                    .padding(.top, 24)
-                    .padding(.bottom, 16)
+                VStack { Spacer()
+                    HStack {
+                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m) { model.retake() }
+                        Spacer()
+                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m) { model.post() }
+                    }
+                    .padding(.horizontal, side).padding(.bottom, m.slideBottom)
+                }
             }
-            .padding(.horizontal, side)
-            .padding(.top, topGap)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(Color.black.ignoresSafeArea())
-        .preferredColorScheme(.dark)
+        .ignoresSafeArea()
+        .statusBarHidden(true)
         .onAppear { model.start() }
         .onDisappear { model.stop() }
-    }
-
-    @ViewBuilder private var controls: some View {
-        switch model.phase {
-        case .live:
-            Color.clear.contentShape(Rectangle()).onTapGesture { model.shoot() }
-        case .review, .failed:
-            VStack(spacing: 16) {
-                if case .failed(let message) = model.phase {
-                    Text(message).font(.footnote).foregroundStyle(.white.opacity(0.8))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else if !model.hasPlace {
-                    Text("no place").font(.footnote).foregroundStyle(.white.opacity(0.5))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                HStack {
-                    Button("discard") { model.discard() }
-                        .buttonStyle(.bordered)
-                        .tint(.white)
-                    Spacer()
-                    Button(retryOrSave) { model.confirm() }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                }
-                .controlSize(.large)
-            }
-            .frame(maxHeight: .infinity, alignment: .bottom)
-        case .saving, .sending:
-            ProgressView().tint(.white).frame(maxWidth: .infinity)
-        case .sent:
-            Text("sent").font(.footnote).foregroundStyle(.white.opacity(0.8))
-        }
-    }
-
-    private var retryOrSave: String {
-        if case .failed = model.phase { return "retry" }
-        return "save"
     }
 }
