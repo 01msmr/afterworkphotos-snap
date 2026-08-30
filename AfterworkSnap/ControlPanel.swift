@@ -74,7 +74,7 @@ struct ControlPanel: View {
     /// `π/2`, so the compression stays finite). A thin separator line
     /// (same mapping, at the half-angle between rows) marks each row
     /// boundary. Dragging rotates `position` continuously, about
-    /// `pt(27)` of drag per row; releasing snaps to the nearest whole
+    /// `pt(22)` of drag per row; releasing snaps to the nearest whole
     /// index with a spring. Disabled (and greyed) before a shot — the
     /// rows still show, so the panel never looks like a plain flat
     /// filler.
@@ -168,8 +168,8 @@ struct ControlPanel: View {
                     // The rows follow the finger, like real cylinder under
                     // your thumb: dragging down brings the previous (lower)
                     // row into the centre; dragging up brings the next
-                    // (higher) row — about pt(27) of drag per row.
-                    position += d / metrics.pt(27)
+                    // (higher) row — about pt(22) of drag per row.
+                    position += d / metrics.pt(22)
                     position = min(max(position, 0), Double(count - 1))
                     let rounded = Int(position.rounded())
                     if rounded != lastRounded {
