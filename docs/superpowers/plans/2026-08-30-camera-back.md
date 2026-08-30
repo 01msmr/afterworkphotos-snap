@@ -16,6 +16,7 @@
 - Do not edit `project.pbxproj`. `Info.plist` and `Secrets.xcconfig` may be edited (they are not the project file).
 - Build check: `cd "/Users/uli/github projects/afterworkphotos-snap" && DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -project AfterworkSnap.xcodeproj -scheme AfterworkSnap -destination 'generic/platform=iOS' -configuration Debug CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|warning: [^M]|BUILD "` — must end `** BUILD SUCCEEDED **` with no `error:` and no warning lines.
 - Tests: `cd "/Users/uli/github projects/afterworkphotos-snap/Packages/SnapCore" && swift test`.
+- Title: iPhone `snap` only; iPad `snap.afterworkphotos` (`snap` blue, rest title colour).
 - Layout constants (iPhone points; iPad = same × width/393): title band top 12 h 44, right inset 3; print top 56, left 4 %, width 92 %, radius 6; logo 24 below print, 26 pt; shutter 24 below logo, Ø 96; wheel Ø 72 at right 4 %, bottom 12 above LCD; LCD 32 below shutter, h 78, 4 % sides; slides bottom 30, 104 × 40, knob Ø 32, labels 16 from the outer end; slide fires past 85 % travel.
 - Colours: title `blue` / `#9db8ff`; shutter `#ff5a4e → #c8100a → #8e0500`; breathing layer `#6a0400 → #3a0200`, 3.2 s; LCD `#c9d3c2 → #b9c4b2`, ink `#1b2a1b`; slides track `#8c8c8c`, red `#c8100a`, green `#1a9a3a`; body `#dedede` / `#161616` under `LeatherLight` / `LeatherDark` tiled at 150 pt; print shade `40,30,20` / `0,0,0`, edge-light `.55` / `.14`; logo silver `#fdfdfb → #b8b8b4 → #8d8d89 → #dcdcd8`.
 - Strings exactly as the spec's table (en / de). Language = system language at launch: `de*` → German, else English.
@@ -1109,7 +1110,9 @@ struct ContentView: View {
                 Leather(metrics: m)
                 VStack(spacing: 0) {
                     // title band: just "snap", right-aligned, 3 pt inside the print's right edge
-                    Text("snap").font(.system(size: m.pt(17), weight: .semibold)).foregroundStyle(Theme.title(scheme))
+                    (Text("snap").foregroundStyle(Theme.title(scheme))
+                     + Text(UIDevice.current.userInterfaceIdiom == .pad ? ".afterworkphotos" : "").foregroundStyle(scheme == .dark ? .white : .black))
+                        .font(.system(size: m.pt(17), weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .trailing).frame(height: m.titleHeight)
                         .padding(.trailing, side + m.pt(3)).padding(.leading, side)
                         .padding(.top, m.titleTop)

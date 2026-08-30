@@ -24,7 +24,7 @@ iPad alike; the status bar is hidden.
 | element | position | notes |
 |---|---|---|
 | status bar | hidden | the island sits in the title band's middle; the title is at the right |
-| title band | top 12, height 44, left 4 %, right 4 % + 3 | just `snap`, in the site's link colour (`blue` / `#9db8ff` dark), 17 pt semibold, right-aligned; the 3 pt is the site's optical text inset, so title and print share one right edge |
+| title band | top 12, height 44, left 4 %, right 4 % + 3 | iPhone: just `snap`, in the site's link colour (`blue` / `#9db8ff` dark); iPad: `snap.afterworkphotos` — `snap` in the link colour, the rest in the title colour (`#000` / `#fff`). 17 pt semibold, right-aligned; the 3 pt is the site's optical text inset, so title and print share one right edge |
 | print (viewfinder) | top 56, left 4 %, width 92 %, square | the site's deck print: 6 pt corners; outside `0 1px 0 edge-light, 1px 0 0 rgba(255,255,255,.3)`; inside `inset 0 3px 4px rgba(shade,.45), inset 0 1px 0 rgba(shade,.35), inset 3px 0 4px rgba(shade,.22), inset 0 -1px 0 rgba(255,255,255,.12)`; shade `40,30,20` light, `0,0,0` dark; edge-light `rgba(255,255,255,.55)` / `.14`. Never carries text. |
 | logo `Snap` | 24 below the print, centred, 26 pt italic black-weight serif | silver gradient fill (`#fdfdfb → #b8b8b4 → #8d8d89 → #dcdcd8`), thin black glossy outline; a physical badge |
 | shutter | 24 below the logo, Ø 96, centred | red, glossy (`#ff5a4e → #c8100a → #8e0500`), ridged collar. **Naming:** a darker layer (`#6a0400 → #3a0200`) breathes over it slowly, 3.2 s. **After a shot** (naming, choosing, failed send): locked — desaturated and dimmed, does nothing — until retake or a finished post. |
