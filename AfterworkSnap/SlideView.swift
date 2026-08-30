@@ -40,9 +40,12 @@ struct SlideView: View {
         let farEdge: Edge.Set = mirrored ? .leading : .trailing
         let restAlign: Alignment = mirrored ? .trailing : .leading
         let farAlign: Alignment = mirrored ? .leading : .trailing
-        // The colour fill's own geometry — label B's mask uses exactly this,
-        // so it can only ever show through where the fill already is.
-        let fillWidth: CGFloat = (enabled && offset > 0) ? metrics.pt(4) + offset + k / 2 : 0
+        // The colour fill's own geometry — from the rest end to 4 pt beyond
+        // the knob's far edge, so the fill encircles the knob (a 4 pt ring
+        // of colour around it) rather than stopping behind it. Label B's
+        // mask uses exactly this, so it can only ever show through where
+        // the fill already is.
+        let fillWidth: CGFloat = (enabled && offset > 0) ? metrics.pt(4) + offset + k + metrics.pt(4) : 0
         // The knob's own leading (outer-facing) edge, as a distance from
         // the rest edge — label A's mask is the strip from there to the
         // outer end, so the knob's advance is what wipes it away.
