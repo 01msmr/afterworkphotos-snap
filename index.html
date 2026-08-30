@@ -7,12 +7,16 @@
   html { background: #000; color: #ddd; font: 17px/1.5 -apple-system, system-ui, sans-serif; }
   body { max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; }
   h1 { font-size: 1.1rem; font-weight: 500; text-align: right; margin: 0 0 2rem; }
-  img { display: block; width: 60%; max-width: 320px; height: auto; margin: 0 auto 1.5rem; border-radius: 24px; }
+  .shots { display: flex; gap: 1rem; justify-content: center; margin: 0 0 1.5rem; }
+  .shots img { display: block; width: 48%; max-width: 260px; height: auto; border-radius: 20px; }
   a { color: #fff; }
 </style>
 <body>
   <h1>afterworksnap</h1>
-  <img src="img/app.jpg" alt="the app: the viewfinder above the LCD, the drum, the red shutter, and the two slides">
+  <div class="shots">
+    <img src="img/app-light.jpg" alt="the app in light mode: the viewfinder above the LCD, the drum, the red shutter, and the two slides">
+    <img src="img/app-dark.jpg" alt="the app in dark mode">
+  </div>
   <p>A personal camera, drawn as the back of one. One square in the viewfinder; tap the red
     button or say <i>snap</i>. A small LCD shows what the photo will carry — a name suggested
     by an AI (turn the drum for another), the town, the date. Slide to post.</p>
