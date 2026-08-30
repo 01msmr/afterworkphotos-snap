@@ -49,7 +49,7 @@ struct ContentView: View {
                     ZStack {
                         ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
                         HStack { Spacer()
-                            WheelView(size: m.wheel, enabled: model.controlsEnabled, onStep: { model.step($0) }, onCenter: { model.fetchNames() })
+                            ControlPanel(size: m.wheel, enabled: model.controlsEnabled, metrics: m, onStep: { model.step($0) }, onCenter: { model.fetchNames() })
                                 .padding(.trailing, side)
                         }
                         .offset(y: (m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12))   // bottom edge 12 above the LCD
