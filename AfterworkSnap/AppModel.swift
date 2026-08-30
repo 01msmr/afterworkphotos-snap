@@ -123,6 +123,7 @@ final class AppModel {
             let got = await Namer.suggest(for: full, language: language)
             guard myID == fetchID, !Task.isCancelled else { return }   // superseded or cancelled: do nothing
             names = got; nameIndex = 0
+            showIndex = true   // "[1] <name>" inverted at once, not just after the first manual step
             namingTask = nil
             naming = false
             if phase == .naming { phase = .review }
