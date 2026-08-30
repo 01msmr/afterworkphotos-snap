@@ -11,8 +11,10 @@ struct LCDView: View {
     let signTwitching: Bool
     let language: Language
     let metrics: Metrics
+    let enabled: Bool
     let onNameSwipe: (Int) -> Void
     @State private var twitch = false
+    @State private var twitchTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,7 +27,7 @@ struct LCDView: View {
                     Spacer(minLength: 0)
                     if row.id == .date, let sign {
                         Text(sign).font(.system(size: metrics.pt(12), weight: .bold, design: .monospaced))
-                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .padding(.horizontal, metrics.pt(6)).padding(.vertical, metrics.pt(2))
                             .background(Theme.lcdInk).foregroundStyle(Theme.lcdTop)
                             .offset(x: signTwitching && twitch ? metrics.pt(8) : 0)
                     }
@@ -34,7 +36,7 @@ struct LCDView: View {
                 .background(inverted ? Theme.lcdInk : .clear)
                 .foregroundStyle(inverted ? Theme.lcdTop : Theme.lcdInk)
                 .contentShape(Rectangle())
-                .gesture(row.id == .name ? DragGesture(minimumDistance: 20).onEnded { g in
+                .gesture(row.id == .name && enabled ? DragGesture(minimumDistance: 20).onEnded { g in
                     onNameSwipe(g.translation.width > 0 ? 1 : -1)
                 } : nil)
             }
@@ -46,13 +48,18 @@ struct LCDView: View {
         .overlay(RoundedRectangle(cornerRadius: metrics.pt(7)).stroke(Color(white: 0.05), lineWidth: metrics.pt(4)).padding(-metrics.pt(2)))
         .shadow(color: .white.opacity(0.18), radius: 0, y: 1)
         .onChange(of: signTwitching, initial: true) { _, on in
-            guard on else { twitch = false; return }
-            Task { @MainActor in
-                while signTwitching {
-                    try? await Task.sleep(for: .seconds(1)); twitch = true
-                    try? await Task.sleep(for: .seconds(1)); twitch = false
+            twitchTask?.cancel()
+            twitch = false
+            guard on else { return }
+            twitchTask = Task {
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                    twitch = true
+                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                    twitch = false
                 }
             }
         }
+        .onDisappear { twitchTask?.cancel() }
     }
 }

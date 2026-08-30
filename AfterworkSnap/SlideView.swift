@@ -10,7 +10,8 @@ import SwiftUI
 /// the far (outer) end sits 16 pt in from it; while sliding, the word's
 /// edge nearer the rest (inner) end sits 16 pt in from it, on the colour.
 /// Only the knob (and the colour fill trailing it) moves; the labels only
-/// switch opacity at the offset == 0 threshold.
+/// switch opacity at the offset == 0 threshold. Passive (disabled) slides
+/// show no colour at all, even behind the knob.
 struct SlideView: View {
     let label: String
     let colour: Color
@@ -19,9 +20,8 @@ struct SlideView: View {
     let metrics: Metrics
     let onFire: () -> Void
     @State private var offset: CGFloat = 0
-    @Environment(\.colorScheme) private var scheme
 
-    private var travel: CGFloat { metrics.slideW - metrics.knob - 8 }
+    private var travel: CGFloat { metrics.slideW - metrics.knob - metrics.pt(8) }
     private var progress: CGFloat { offset / travel }
 
     var body: some View {
@@ -35,7 +35,9 @@ struct SlideView: View {
             Capsule().fill(Theme.track)
                 .overlay(Capsule().strokeBorder(.black.opacity(0.45), lineWidth: 1))
                 .shadow(color: .black.opacity(0.45), radius: 2, y: 2)   // recessed
-            Rectangle().fill(colour).frame(width: 4 + offset + k / 2).clipShape(Capsule())
+            if enabled && offset > 0 {
+                Rectangle().fill(colour).frame(width: metrics.pt(4) + offset + k / 2).clipShape(Capsule())
+            }
             // resting label: near edge 16 from the far (outer) end
             Text(label).font(.system(size: metrics.pt(12), weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: farAlign)
@@ -46,10 +48,10 @@ struct SlideView: View {
                 .frame(maxWidth: .infinity, alignment: restAlign)
                 .padding(restEdge, metrics.labelInset)
                 .opacity(offset == 0 ? 0 : 1)
-            Circle().frame(width: k, height: k)
-                .modifier(Dome())
+            Color.clear.frame(width: k, height: k)
+                .modifier(Dome(radius: k / 2))
                 .saturation(enabled ? 1 : 0).brightness(enabled ? 0 : -0.15)
-                .padding(restEdge, 4)
+                .padding(restEdge, metrics.pt(4))
                 .offset(x: mirrored ? -offset : offset)
                 .gesture(DragGesture().onChanged { g in
                     guard enabled else { return }

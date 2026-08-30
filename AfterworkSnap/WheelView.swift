@@ -10,6 +10,7 @@ struct WheelView: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
+        let centre = size * (42.0 / 72.0)   // the spec's "size - 30" at the reference 72 pt wheel, scaled with size
         ZStack {
             Circle().fill(AngularGradient(colors: Array(repeating: [Color(white: scheme == .dark ? 0.3 : 0.85), Color(white: scheme == .dark ? 0.12 : 0.66)], count: 45).flatMap { $0 }, center: .center))
                 .overlay(Circle().strokeBorder(Color(white: scheme == .dark ? 0.2 : 0.76), lineWidth: 6))
@@ -31,10 +32,10 @@ struct WheelView: View {
                 }.onEnded { _ in lastAngle = nil; accumulated = 0 })
             Button(action: { if enabled { onCenter() } }) {
                 Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")   // the rotate-arrows glyph
-                    .font(.system(size: size * 0.3, weight: .bold))
-                    .foregroundStyle(enabled ? Theme.titleBlue : Color(white: 0.48))
-                    .frame(width: size - 30, height: size - 30)
-                    .modifier(Dome())
+                    .font(.system(size: size * 0.22, weight: .bold))
+                    .foregroundStyle(enabled ? Color(white: 0.45) : Color(white: 0.6))
+                    .frame(width: centre, height: centre)
+                    .modifier(Dome(radius: centre / 2))
             }
             .buttonStyle(.plain)
         }

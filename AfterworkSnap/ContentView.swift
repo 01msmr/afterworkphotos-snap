@@ -7,9 +7,9 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let m = Metrics(width: geo.size.width)
-            let side = geo.size.width * m.side
-            let print = geo.size.width - 2 * side
+            let m = Metrics(width: geo.size.width, height: geo.size.height)
+            let side = m.side
+            let printSide = m.printSide
             let lang = model.language
             ZStack(alignment: .top) {
                 Leather(metrics: m)
@@ -21,14 +21,15 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, alignment: .trailing).frame(height: m.titleHeight)
                         .padding(.trailing, side + m.pt(3)).padding(.leading, side)
                         .padding(.top, m.titleTop)
-                    // the print
+                    // the print — the captured photo stays up, above the live viewfinder,
+                    // from the shutter release until retake or a finished post
                     ZStack {
                         PreviewView(session: model.camera.session)
-                        if let data = model.full, let image = UIImage(data: data) {
+                        if let image = model.preview {
                             Image(uiImage: image).resizable().scaledToFill()
                         }
                     }
-                    .frame(width: print, height: print)
+                    .frame(width: printSide, height: printSide)
                     .clipShape(RoundedRectangle(cornerRadius: m.pt(6)))
                     .overlay(RoundedRectangle(cornerRadius: m.pt(6)).stroke(Theme.shade(scheme).opacity(0.35), lineWidth: 1))
                     .overlay(                                                // letterpress: top and left wall in shadow
@@ -43,7 +44,7 @@ struct ContentView: View {
                     .padding(.top, m.printTop - m.titleTop - m.titleHeight)
                     LogoView(size: m.logoSize).padding(.top, m.gapLogo)
                     ZStack {
-                        ShutterButton(size: m.shutter, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
+                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
                         HStack { Spacer()
                             WheelView(size: m.wheel, enabled: model.controlsEnabled, onStep: { model.step($0) }, onCenter: { model.fetchNames() })
                                 .padding(.trailing, side)
@@ -56,7 +57,7 @@ struct ContentView: View {
                                    LCDRow(id: .date, value: model.date ?? Strings.t(.empty, lang))],
                             invertedRow: model.showIndex ? .name : nil,
                             sign: model.sign, signTwitching: model.phase == .failed,
-                            language: lang, metrics: m, onNameSwipe: { model.step($0) })
+                            language: lang, metrics: m, enabled: model.controlsEnabled, onNameSwipe: { model.step($0) })
                         .padding(.horizontal, side).padding(.top, m.gapLCD)
                     Spacer(minLength: 0)
                 }
