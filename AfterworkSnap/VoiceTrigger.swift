@@ -64,7 +64,12 @@ nonisolated final class VoiceTrigger: NSObject, @unchecked Sendable {
         guard let recognizer, recognizer.isAvailable else { return }
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers])
+            // `.default` (not `.measurement`) plus the Bluetooth options,
+            // so recognition and the UI sounds both follow whatever route
+            // is actually active (speaker, or a connected BT headset)
+            // instead of forcing the speaker while BT is connected.
+            try session.setCategory(.playAndRecord, mode: .default,
+                                    options: [.allowBluetoothA2DP, .allowBluetoothHFP, .duckOthers, .defaultToSpeaker])
             try session.setActive(true)
         } catch { return }
 

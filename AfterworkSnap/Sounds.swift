@@ -1,31 +1,42 @@
 import Foundation
+import AVFoundation
 import AudioToolbox
 
-/// Short UI sound effects — tick, post, crunch — played from the WAV
-/// files bundled under `Sounds/`. `AudioServicesPlaySystemSound` is a
-/// short, fire-and-forget playback call: it doesn't configure or
-/// activate any `AVAudioSession` category of its own, so it plays fine
-/// alongside `VoiceTrigger`'s own `.playAndRecord` session. Volume is
-/// baked into the files, not adjusted here.
+/// Short UI sound effects — tick, crunch (bundled WAVs) and the post
+/// whoosh (a built-in system sound). Tick/crunch go through `AVAudioPlayer`
+/// rather than `AudioServicesPlaySystemSound`, specifically so they follow
+/// `AVAudioSession`'s active route (e.g. connected Bluetooth headphones)
+/// instead of always playing on the speaker — `AudioServicesPlaySystemSound`
+/// does not respect session routing the same way a real player does.
 enum Sounds {
-    private static var ids: [String: SystemSoundID] = [:]
-
-    static func play(_ name: String) {
-        if let id = ids[name] {
-            AudioServicesPlaySystemSound(id)
-            return
+    /// One `AVAudioPlayer` per bundled sound, preloaded and prepared once
+    /// (on first reference to `Sounds`), not re-created per play.
+    private static let players: [String: AVAudioPlayer] = {
+        var result: [String: AVAudioPlayer] = [:]
+        for name in ["tick", "crunch"] {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
+                ?? Bundle.main.url(forResource: name, withExtension: "wav"),
+                  let player = try? AVAudioPlayer(contentsOf: url) else { continue }
+            player.prepareToPlay()
+            result[name] = player
         }
-        guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
-            ?? Bundle.main.url(forResource: name, withExtension: "wav") else { return }
-        var id: SystemSoundID = 0
-        guard AudioServicesCreateSystemSoundID(url as CFURL, &id) == kAudioServicesNoError else { return }
-        ids[name] = id
-        AudioServicesPlaySystemSound(id)
+        return result
+    }()
+
+    /// Plays a bundled sound (`"tick"`, `"crunch"`) — safe to call from
+    /// the main actor or `VoiceTrigger`'s own audio queue.
+    static func play(_ name: String) {
+        guard let player = players[name] else { return }
+        player.currentTime = 0
+        player.play()
     }
 
-    /// A well-known built-in system sound (no bundled file, no caching
-    /// needed — the OS already owns these). Used for the post-success
-    /// "mail sent" whoosh, ID 1001.
+    /// A well-known built-in system sound — no bundled file, no
+    /// `AVAudioPlayer` needed. Used for the post-success "mail sent"
+    /// whoosh, ID 1001. Kept as `AudioServicesPlaySystemSound` per the
+    /// controller's ruling even though, like tick/crunch used to, it
+    /// plays on the speaker regardless of a connected Bluetooth route —
+    /// see the fix report for the rationale.
     static func playSystem(_ id: SystemSoundID) {
         AudioServicesPlaySystemSound(id)
     }

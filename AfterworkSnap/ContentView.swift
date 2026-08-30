@@ -107,6 +107,7 @@ struct ContentView: View {
                         SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)]) { model.retake() }
                         Spacer()
                         LogoView(size: m.logoSize)
+                            .onTapGesture { Sounds.playSystem(1001) }   // temporary test hook — no other effect
                         Spacer()
                         SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)]) { model.post() }
                     }
