@@ -44,6 +44,7 @@ final class AppModel {
     private var loggedFirstNamesRequest = false
 #endif
 
+    var shutterHeld = false                 // finger on the button: the voice trigger stays quiet
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var controlsEnabled: Bool { phase == .naming || phase == .review || phase == .failed }
     var name: String {
@@ -62,7 +63,12 @@ final class AppModel {
         print("t+\(msSinceLaunch()) ms: start() entry")
         #endif
         guard !configured else { camera.start(); location.start(); return }
-        voiceTrigger.onTrigger = { [weak self] in self?.shoot() }
+        // The voice trigger holds its tongue while a finger is on the
+        // shutter — the button owns the shot then.
+        voiceTrigger.onTrigger = { [weak self] in
+            guard let self, !self.shutterHeld else { return }
+            self.shoot()
+        }
         camera.onDidStartRunning = { [weak self] in
             Task { @MainActor in
                 guard let self else { return }

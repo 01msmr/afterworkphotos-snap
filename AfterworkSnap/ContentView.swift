@@ -56,7 +56,7 @@ struct ContentView: View {
                     // The shutter row: shutter centred; the control panel
                     // hangs from the LCD's bottom (see panelOffsetY above).
                     ZStack {
-                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, reflection: model.camera.frontPreviewLayer) { model.shoot() }
+                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, reflection: model.camera.frontPreviewLayer, onTouch: { model.shutterHeld = $0 }) { model.shoot() }
                         HStack {
                             if panelOnLeft {
                                 ControlPanel(count: model.names.count,
