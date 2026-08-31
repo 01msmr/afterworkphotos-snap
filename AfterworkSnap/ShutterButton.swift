@@ -1,26 +1,32 @@
 import SwiftUI
+import AVFoundation
 
 /// The chrome release: a polished disc, machined into the leather.
 ///
-/// Every measure is physical, converted per device by `Metrics.mm`: the
-/// face's edge rounds off at 1 mm, a 0.2 mm black gap rings the button,
-/// and the leather lip around the well is itself rounded at 0.5 mm and
-/// shaded in relief, like the button's edge. Pressing sinks the disc
-/// 1.5 mm — on screen a small settle, a dimmed face and the lip's shadow
-/// falling across the upper edge — and the shot fires on release (a
-/// SwiftUI `Button`'s touch-up). The face keeps its form: no glass, no
-/// breathing, no colour change; `locked` only dims it and swallows the
-/// press. In the centre, the photographer's reflection: a dark
-/// silhouette, phone raised.
+/// Every measure is physical, converted per device by `Metrics.mm`. The
+/// face is dead flat and only the outer 1 mm rounds off, drawn as an
+/// angular ring of chrome turning away from the light. In the face sits
+/// the real reflection: the front camera's mirrored feed (`reflection`),
+/// under a breath of chrome — or, where multi-cam isn't supported, a
+/// drawn silhouette of the photographer. Around the disc: a 0.2 mm black
+/// gap, then the leather, which rolls *into* the well at 0.5 mm — a
+/// roundover like the button's own, darkening as it turns down; no
+/// bright ring. Pressing sinks the disc 1.5 mm — on screen a small
+/// settle, a dimmed face and the well's shadow across the upper edge —
+/// and the shot fires on release (a SwiftUI `Button`'s touch-up). The
+/// disc keeps its form: no glass, no breathing, no colour change;
+/// `locked` only dims it and swallows the press.
 struct ShutterButton: View {
     let size: CGFloat
     let metrics: Metrics
     let locked: Bool
+    let reflection: AVCaptureVideoPreviewLayer?
     let action: () -> Void
 
     var body: some View {
         let gap = metrics.mm(0.2)
         let lip = metrics.mm(0.5)
+        let wellR = size / 2 + gap + lip
         Button(action: { if !locked { action() } }) {
             disc
         }
@@ -28,22 +34,21 @@ struct ShutterButton: View {
         .frame(width: size, height: size)
         .background(
             ZStack {
-                Circle()      // the leather lip: 0.5 mm roundover, lit from above, rolling into the well
-                    .fill(LinearGradient(stops: [
-                        .init(color: .white.opacity(0.28), location: 0),
-                        .init(color: Color(red: 120/255, green: 110/255, blue: 90/255).opacity(0.10), location: 0.4),
-                        .init(color: .black.opacity(0.65), location: 1),
-                    ], startPoint: .top, endPoint: .bottom))
-                    .frame(width: size + 2 * (gap + lip), height: size + 2 * (gap + lip))
+                Circle()   // the leather rolls in: dark at the hole, back level outside
+                    .fill(RadialGradient(stops: [
+                        .init(color: .black.opacity(0.55), location: 0),
+                        .init(color: .black.opacity(0.55), location: (size / 2 + gap) / wellR),
+                        .init(color: .black.opacity(0), location: 1),
+                    ], center: .center, startRadius: 0, endRadius: wellR))
+                    .frame(width: wellR * 2, height: wellR * 2)
                 Circle().fill(.black)   // the 0.2 mm gap
                     .frame(width: size + 2 * gap, height: size + 2 * gap)
             }
         )
     }
 
-    /// The disc: the 1 mm roundover as an angular ring of darker chrome
-    /// turning away from the light, the flat face a mirrored horizon
-    /// with the photographer in it and one glare, top left.
+    /// The disc: the 1 mm roundover as an angular ring of darker chrome;
+    /// inside it the flat face with the reflection in it.
     private var disc: some View {
         let edge = metrics.mm(1)
         return ZStack {
@@ -59,19 +64,21 @@ struct ShutterButton: View {
                 .init(color: Color(white: 0.86), location: 1),
             ], center: .center, angle: .degrees(200)))
             ZStack {
-                Circle().fill(LinearGradient(stops: [
-                    .init(color: Color(white: 0.95), location: 0),
-                    .init(color: Color(white: 0.81), location: 0.20),
-                    .init(color: Color(white: 0.56), location: 0.42),
-                    .init(color: Color(white: 0.28), location: 0.51),
-                    .init(color: Color(white: 0.48), location: 0.58),
-                    .init(color: Color(white: 0.72), location: 0.78),
-                    .init(color: Color(white: 0.89), location: 1),
-                ], startPoint: .top, endPoint: .bottom))
-                photographer
-                Circle().fill(RadialGradient(colors: [.white.opacity(0.75), .clear],
-                                             center: UnitPoint(x: 0.36, y: 0.26),
-                                             startRadius: 0, endRadius: (size - 2 * edge) * 0.42))
+                if let reflection {
+                    PreviewView(layer: reflection)
+                    LinearGradient(stops: [   // into the metal: a breath of chrome over the image
+                        .init(color: .white.opacity(0.22), location: 0),
+                        .init(color: Color(white: 0.5).opacity(0.08), location: 0.5),
+                        .init(color: .black.opacity(0.28), location: 1),
+                    ], startPoint: .top, endPoint: .bottom)
+                } else {
+                    Circle().fill(LinearGradient(stops: [
+                        .init(color: Color(white: 0.90), location: 0),
+                        .init(color: Color(white: 0.78), location: 0.5),
+                        .init(color: Color(white: 0.70), location: 1),
+                    ], startPoint: .top, endPoint: .bottom))
+                    photographer
+                }
             }
             .clipShape(Circle())
             .padding(edge)
@@ -80,7 +87,7 @@ struct ShutterButton: View {
         .animation(.linear(duration: 0.2), value: locked)
     }
 
-    /// The reflection: head, shoulders, the raised phone — soft and dark.
+    /// The fallback reflection: head, shoulders, the raised phone — soft and dark.
     private var photographer: some View {
         let inner = size - 2 * metrics.mm(1)
         let ink = Color(red: 0x18/255, green: 0x1d/255, blue: 0x22/255)
@@ -103,7 +110,7 @@ struct ShutterButton: View {
 }
 
 /// The press: sink on touch, fire on release. The sink reads as a small
-/// settle downward, a dimmer face, the lip's shadow on the upper edge
+/// settle downward, a dimmer face, the well's shadow on the upper edge
 /// and a collapsed drop shadow — the disc itself never changes shape.
 private struct PressStyle: ButtonStyle {
     let metrics: Metrics
