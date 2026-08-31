@@ -41,14 +41,16 @@ struct SlideView: View {
     @State private var offset: CGFloat = 0
 
     /// The knob, its gap, the widest label this slide can show, and the
-    /// label's own margin on both sides — never below the pt(96) minimum.
+    /// label's own margin on both sides — never below the pt(96) minimum —
+    /// then a third of a knob taken back off: the slides run deliberately
+    /// tight, a shorter throw.
     private var width: CGFloat {
         let font = UIFont.systemFont(ofSize: metrics.pt(12), weight: .semibold)
         let widest = sizingLabels
             .map { ($0 as NSString).size(withAttributes: [.font: font]).width }
             .max() ?? 0
         let natural = metrics.knob + metrics.pt(8) + widest + 2 * metrics.labelInset
-        return max(metrics.pt(96), natural)
+        return max(metrics.pt(96), natural) - metrics.knob / 3
     }
     private var travel: CGFloat { width - metrics.knob - metrics.pt(8) }
     private var progress: CGFloat { offset / travel }
