@@ -79,9 +79,9 @@ struct ShutterButton: View {
             if let reflection {
                 PreviewView(layer: reflection)
                     .scaleEffect(1.06)                 // keeps the blur's hazy border under the clip
-                    .blur(radius: metrics.mm(1.0))     // satin: shiny, not glossy
+                    .blur(radius: metrics.mm(1.2))     // satin: shiny, not glossy
                     .saturation(0.75)                  // a quarter of the colour gone
-                    .brightness(-0.15)                 // and 15 % of the light
+                    .brightness(-0.05)                 // barely dimmed — the shine stays light
             } else {
                 LinearGradient(stops: [
                     .init(color: Color(white: 0.90), location: 0),
