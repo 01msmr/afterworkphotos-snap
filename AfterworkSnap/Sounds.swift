@@ -23,6 +23,11 @@ enum Sounds {
         return result
     }()
 
+    /// Builds every player (the lazy `players` map) ahead of time, so
+    /// the first tick mid-gesture doesn't pay for loading all the WAVs
+    /// on the main thread. Call early, off the main thread.
+    static func preload() { _ = players }
+
     /// Plays a bundled sound from the preload list — safe to call from
     /// the main actor or `VoiceTrigger`'s own audio queue.
     static func play(_ name: String) {

@@ -151,7 +151,7 @@ struct ControlPanel: View {
         .frame(width: width, height: height)
         .clipShape(RoundedRectangle(cornerRadius: metrics.pt(8)))
         .contentShape(Rectangle())
-        .onAppear { position = Double(selection) }
+        .onAppear { position = Double(selection); haptic.prepare() }   // a prepared generator ticks without first-use lag
         .onChange(of: selection) { _, new in if !dragActive { position = Double(new) } }
         .gesture(
             DragGesture(minimumDistance: 2)

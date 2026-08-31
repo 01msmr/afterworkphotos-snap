@@ -64,6 +64,8 @@ final class AppModel {
         #if DEBUG
         print("t+\(msSinceLaunch()) ms: start() entry")
         #endif
+        // The wheel's first tick must not load eight WAVs mid-drag.
+        DispatchQueue.global(qos: .utility).async { Sounds.preload() }
         guard !configured else { camera.start(); location.start(); return }
         // The voice trigger holds its tongue while a finger is on the
         // shutter — the button owns the shot then.
