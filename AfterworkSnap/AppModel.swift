@@ -104,6 +104,7 @@ final class AppModel {
         capturing = true
         voiceTrigger.stop()
         camera.freezePreview(true)                 // instant still, until retake or a finished post
+        Sounds.play("shutter")                     // the insta-cam click, right as the frame freezes
         let fix = location.usableFix
         camera.capture { [weak self] result in
             guard let self else { return }
