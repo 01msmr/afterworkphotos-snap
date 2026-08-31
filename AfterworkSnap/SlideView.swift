@@ -116,11 +116,13 @@ struct SlideView: View {
                     guard enabled else { return }
                     let dx = mirrored ? -g.translation.width : g.translation.width
                     offset = min(max(0, dx), travel)
-                    // The geared throw: a faint ratchet tick (sound and
-                    // haptic) at each quarter of travel on the way out.
+                    // The geared throw ticks BOTH ways — a very light
+                    // metal click at each quarter, out and back. The
+                    // step into the last quarter stays silent: the fire
+                    // sound owns that moment.
                     let quarter = Int(progress * 4)
                     if quarter != lastQuarter {
-                        if quarter > lastQuarter, quarter < 4 { Sounds.play("tick"); haptic.selectionChanged() }
+                        if quarter < 4 { Sounds.play("step"); haptic.selectionChanged() }
                         lastQuarter = quarter
                     }
                 }.onEnded { _ in

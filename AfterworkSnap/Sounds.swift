@@ -13,7 +13,7 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        for name in ["tick", "crunch", "shutter", "tchack", "eject", "thup", "knock", "zip"] {
+        for name in ["tick", "crunch", "shutter", "step", "eject", "thup", "knock", "zip"] {   // + "tchack" stays shelved in Sounds/, unloaded
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "wav"),
                   let player = try? AVAudioPlayer(contentsOf: url) else { continue }
@@ -30,10 +30,15 @@ enum Sounds {
 
     /// Plays a bundled sound from the preload list — safe to call from
     /// the main actor or `VoiceTrigger`'s own audio queue.
+    /// Playback hops onto its own queue — `AVAudioPlayer.play()` can
+    /// block for a few ms, which is a visible hitch mid-gesture.
+    private static let playQueue = DispatchQueue(label: "snap.sounds")
     static func play(_ name: String) {
-        guard let player = players[name] else { return }
-        player.currentTime = 0
-        player.play()
+        playQueue.async {
+            guard let player = players[name] else { return }
+            player.currentTime = 0
+            player.play()
+        }
     }
 
     /// A well-known built-in system sound — no bundled file, no

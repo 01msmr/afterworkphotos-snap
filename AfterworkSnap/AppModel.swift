@@ -46,7 +46,6 @@ final class AppModel {
 #endif
 
     var shutterHeld = false                 // finger on the button: the voice trigger stays quiet
-    private var mirrorNext = false          // audition a/b — dies with the toggle above
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var controlsEnabled: Bool { phase == .naming || phase == .review || phase == .failed }
     var name: String {
@@ -108,12 +107,7 @@ final class AppModel {
         capturing = true
         voiceTrigger.stop()
         camera.freezePreview(true)                 // instant still, until retake or a finished post
-        // AUDITION, temporary: the two shutter voices take turns —
-        // insta click, then mirror slap, and so on — purely to compare
-        // them on the device. Once one wins, it plays alone and this
-        // toggle goes.
-        Sounds.play(mirrorNext ? "tchack" : "shutter")
-        mirrorNext.toggle()
+        Sounds.play("shutter")   // the decided voice: the short ti-k (tchack stays shelved in Sounds/)
         let fix = location.usableFix
         camera.capture { [weak self] result in
             guard let self else { return }
