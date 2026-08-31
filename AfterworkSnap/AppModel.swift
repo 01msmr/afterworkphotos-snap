@@ -45,6 +45,7 @@ final class AppModel {
 #endif
 
     var shutterHeld = false                 // finger on the button: the voice trigger stays quiet
+    private var mirrorNext = false          // a/b: insta click and mirror slap alternate per shot
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
     var controlsEnabled: Bool { phase == .naming || phase == .review || phase == .failed }
     var name: String {
@@ -104,8 +105,10 @@ final class AppModel {
         capturing = true
         voiceTrigger.stop()
         camera.freezePreview(true)                 // instant still, until retake or a finished post
-        Sounds.play("shutter")                     // the insta-cam click, right as the frame freezes
-        // Sounds.play("tchack")                   // the SLR mirror slap — commented out; also add "tchack" to Sounds' preload list
+        // The two shutter voices take turns: the insta click on the
+        // first shot, the SLR mirror slap on the next, and so on.
+        Sounds.play(mirrorNext ? "tchack" : "shutter")
+        mirrorNext.toggle()
         let fix = location.usableFix
         camera.capture { [weak self] result in
             guard let self else { return }

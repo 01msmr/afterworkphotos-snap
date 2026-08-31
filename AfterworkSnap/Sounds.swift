@@ -13,7 +13,7 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        for name in ["tick", "crunch", "shutter"] {   // + "tchack" (the SLR mirror slap) sits in Sounds/, deliberately unloaded
+        for name in ["tick", "crunch", "shutter", "tchack"] {
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "wav"),
                   let player = try? AVAudioPlayer(contentsOf: url) else { continue }
@@ -23,7 +23,7 @@ enum Sounds {
         return result
     }()
 
-    /// Plays a bundled sound (`"tick"`, `"crunch"`, `"shutter"`) — safe to call from
+    /// Plays a bundled sound (`"tick"`, `"crunch"`, `"shutter"`, `"tchack"`) — safe to call from
     /// the main actor or `VoiceTrigger`'s own audio queue.
     static func play(_ name: String) {
         guard let player = players[name] else { return }
