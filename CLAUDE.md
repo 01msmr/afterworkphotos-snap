@@ -54,13 +54,24 @@ These are decided. Do not "improve" them without being asked.
 - centre crop in raw pixel space; the orientation tag is copied, never rewritten
 - saved with `PHAssetCreationRequest` + `isFavorite = true`, `.readWrite` auth
 - no albums, shared or otherwise
+- multi-cam where supported: the front camera runs preview-only into the
+  shutter's face (smallest format); the back keeps a multi-cam-capable
+  format with the photo ceiling raised by hand — never at the cost of the
+  rules above
 
 ## UI invariants
 
-Full black background. One square photo area with equal side margins, high on
-the screen. Title `afterworksnap` right-aligned directly beneath it. Nothing
-else on screen except controls — no card, no rounded container, no caption,
-no date, no watermark. Vertical only, same on iPhone and iPad.
+Dark only — pinned at the root; the light-mode branches stay in the code,
+unreachable. The camera back: leather body, the matte square print high on
+the screen (no title band), LCD beneath it, the chrome release centred
+below with the drum panel beside it, retake · `Snap` logo · post at the
+bottom. Vertical only, iPhone and iPad at the same point sizes; home
+screen name `Snap` (Info.plist AND the pbxproj build setting — the
+setting overrides the plist).
 
-Tapping the empty area below the square captures. After capture: revert on the
-left, green save on the right.
+The release is measured in millimetres, physical per device (`Metrics.mm`,
+6 pt/mm iPhone, 5.2 pt/mm iPad): flat satin face, 1 mm edge roundover
+(same material, no rim), 0.2 mm black gap, 0.5 mm leather roll-in, 1.5 mm
+travel, shot on release, front camera mirrored in the face. Never morphs.
+Ratchet ticks are by LENGTH, pitch by speed. Design of record:
+docs/superpowers/specs/2026-08-31-chrome-release-design.md.
