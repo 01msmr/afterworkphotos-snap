@@ -210,6 +210,38 @@ final class AppModel {
         voiceTrigger.start()
     }
 
+    /// The whole post experience with nothing sent — the eject sound,
+    /// the print sliding out, the sending pause, the landing, the
+    /// "hangs on the site" sign — while the photo goes neither to the
+    /// library nor to the site. Lives on the Snap logo: the demo.
+    func demoPost() {
+        guard full != nil, controlsEnabled else { return }
+        namingTask?.cancel(); namingTask = nil; naming = false
+        phase = .sending
+        Sounds.play("eject")   // the slider would have played this on the real post
+        ejecting = true
+        Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            camera.freezePreview(false)
+            previewTask?.cancel(); previewTask = nil
+            preview = nil
+            ejecting = false
+        }
+        Task {
+            try? await Task.sleep(for: .milliseconds(1200))   // the pretend upload
+            phase = .sent
+            sign = Strings.t(.postSent, language)
+            Sounds.play("thup")   // the print lands, on the pretend site
+            voiceTrigger.start()
+            camera.freezePreview(false)
+            full = nil; preview = nil; names = []
+            place = nil; date = nil; nameIndex = 0; showIndex = false
+            saved = false
+            try? await Task.sleep(for: .seconds(9))
+            if phase == .sent { sign = nil; phase = .live }
+        }
+    }
+
     /// A fresh encode with the LCD's current name and place; to the
     /// library once, then to the site every time (a retry after `.failed`
     /// re-encodes with whatever the LCD shows now — the site always gets
