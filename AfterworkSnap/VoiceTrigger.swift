@@ -70,6 +70,11 @@ nonisolated final class VoiceTrigger: NSObject, @unchecked Sendable {
             // instead of forcing the speaker while BT is connected.
             try session.setCategory(.playAndRecord, mode: .default,
                                     options: [.allowBluetoothA2DP, .allowBluetoothHFP, .duckOthers, .defaultToSpeaker])
+            // While recording, iOS silences ALL haptics (and system
+            // sounds) unless this is set — the always-on "snap" listener
+            // would otherwise mute the shutter's clicks and the drum's
+            // ticks. Best effort: listening must not die over feel.
+            try? session.setAllowHapticsAndSystemSoundsDuringRecording(true)
             try session.setActive(true)
         } catch { return }
 
