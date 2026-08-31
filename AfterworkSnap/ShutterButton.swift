@@ -30,6 +30,7 @@ struct ShutterButton: View {
             disc
         }
         .buttonStyle(PressStyle(metrics: metrics, locked: locked))
+        .onAppear { ShutterHaptics.shared.prepare() }
         .frame(width: size, height: size)
         .background(
             ZStack {
@@ -110,7 +111,8 @@ private struct PressStyle: ButtonStyle {
     let metrics: Metrics
     let locked: Bool
     func makeBody(configuration: Configuration) -> some View {
-        let pressed = configuration.isPressed && !locked
+        let down = configuration.isPressed
+        let pressed = down && !locked
         return configuration.label
             .overlay(
                 Circle().stroke(.black.opacity(0.45), lineWidth: metrics.mm(0.9))
@@ -124,5 +126,14 @@ private struct PressStyle: ButtonStyle {
                     radius: pressed ? metrics.mm(0.25) : metrics.mm(0.8),
                     y: pressed ? metrics.mm(0.1) : metrics.mm(0.35))
             .animation(.easeOut(duration: 0.07), value: pressed)
+            // The click of the metal (see ShutterHaptics): the dome
+            // bottoming out going in, the spring's tick coming back out —
+            // and when locked, the dead double-knock of a button that
+            // won't travel.
+            .onChange(of: down) { _, isDown in
+                if locked { if isDown { ShutterHaptics.shared.locked() } }
+                else if isDown { ShutterHaptics.shared.press() }
+                else { ShutterHaptics.shared.release() }
+            }
     }
 }
