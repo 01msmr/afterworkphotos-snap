@@ -30,8 +30,12 @@ struct ContentView: View {
                         }
                         if let image = model.preview {
                             Image(uiImage: image).resizable().scaledToFill()
+                                .offset(x: model.ejecting ? printSide : 0)   // the print pushes out to the right, revealing the live view
+                                .animation(.easeIn(duration: 0.45), value: model.ejecting)
                         }
                     }
+                    .overlay(Color.white.opacity(0.045))                     // the matte screen's faint milk
+                    .saturation(0.90).contrast(0.94)                         // ground glass, not gloss
                     .frame(width: printSide, height: printSide)
                     .clipShape(RoundedRectangle(cornerRadius: m.pt(6)))
                     .overlay(RoundedRectangle(cornerRadius: m.pt(6)).stroke(Theme.shade(scheme).opacity(0.35), lineWidth: 1))
@@ -98,12 +102,12 @@ struct ContentView: View {
                 // centred on the slides) — post.
                 VStack { Spacer()
                     HStack {
-                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)]) { model.retake() }
+                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)], fireSound: "zip") { model.retake() }
                         Spacer()
                         LogoView(size: m.logoSize)
                             .onTapGesture { Sounds.playSystem(1001) }   // temporary test hook — no other effect
                         Spacer()
-                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)]) { model.post() }
+                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)], fireSound: "eject") { model.post() }
                     }
                     .padding(.horizontal, side).padding(.bottom, m.slideBottom)
                 }
