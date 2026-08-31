@@ -31,8 +31,10 @@ struct Metrics {
         side = max(width * 0.04, (width - printSide) / 2)
     }
     func pt(_ v: CGFloat) -> CGFloat { v * scale }
-    var titleTop: CGFloat { pt(12) }
-    var titleHeight: CGFloat { pt(44) }
+    /// Physical millimetres in points — 6 pt/mm on iPhone (460 ppi / 3x),
+    /// 5.2 pt/mm on iPad (264 ppi / 2x). Never scaled: a millimetre is a
+    /// millimetre on every screen.
+    func mm(_ v: CGFloat) -> CGFloat { v * (UIDevice.current.userInterfaceIdiom == .pad ? 5.2 : 6.0) }
     var printTop: CGFloat { pt(56) }
     var gapLogo: CGFloat { pt(24) }
     var logoSize: CGFloat { pt(19) }
@@ -50,10 +52,6 @@ struct Metrics {
 enum Theme {
     static let titleBlue = Color(red: 0, green: 0, blue: 1)
     static let titleBlueDark = Color(red: 0x9d/255, green: 0xb8/255, blue: 1)
-    static let shutterTop = Color(red: 1, green: 0x5a/255, blue: 0x4e/255)
-    static let shutterMid = Color(red: 0xc8/255, green: 0x10/255, blue: 0x0a/255)
-    static let shutterEdge = Color(red: 0x8e/255, green: 0x05/255, blue: 0)
-    static let redDark = Color(red: 0x9a/255, green: 0x0c/255, blue: 0x06/255)
     static let lcdTop = Color(red: 0xc9/255, green: 0xd3/255, blue: 0xc2/255)
     static let lcdBottom = Color(red: 0xb9/255, green: 0xc4/255, blue: 0xb2/255)
     static let lcdInk = Color(red: 0x1b/255, green: 0x2a/255, blue: 0x1b/255)
@@ -65,7 +63,6 @@ enum Theme {
         scheme == .dark ? Color(red: 0x16/255, green: 0x16/255, blue: 0x16/255)
                         : Color(red: 0xde/255, green: 0xde/255, blue: 0xde/255)
     }
-    static func title(_ scheme: ColorScheme) -> Color { scheme == .dark ? titleBlueDark : titleBlue }
     /// The print's recess shade (the site's --shade) and edge light.
     static func shade(_ scheme: ColorScheme) -> Color { scheme == .dark ? .black : Color(red: 40/255, green: 30/255, blue: 20/255) }
     static func edgeLight(_ scheme: ColorScheme) -> Color { .white.opacity(scheme == .dark ? 0.14 : 0.55) }

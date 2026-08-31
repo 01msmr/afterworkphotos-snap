@@ -20,13 +20,7 @@ struct ContentView: View {
             ZStack(alignment: .top) {
                 Leather(metrics: m)
                 VStack(spacing: 0) {
-                    // title band: just "snap", right-aligned, 3 pt inside the print's right edge
-                    (Text("snap").foregroundStyle(Theme.title(scheme))
-                     + Text(UIDevice.current.userInterfaceIdiom == .pad ? ".afterworkphotos" : "").foregroundStyle(scheme == .dark ? .white : .black))
-                        .font(.system(size: m.pt(17), weight: .semibold))
-                        .frame(maxWidth: .infinity, alignment: .trailing).frame(height: m.titleHeight)
-                        .padding(.trailing, side + m.pt(3)).padding(.leading, side)
-                        .padding(.top, m.titleTop)
+                    // no title band any more — the print rises alone over the leather
                     // the print — the captured photo stays up, above the live viewfinder,
                     // from the shutter release until retake or a finished post
                     ZStack {
@@ -50,7 +44,7 @@ struct ContentView: View {
                             .mask(LinearGradient(colors: [.black, .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
                     )
                     .shadow(color: Theme.edgeLight(scheme), radius: 0, y: 1)
-                    .padding(.top, m.printTop - m.titleTop - m.titleHeight)
+                    .padding(.top, m.printTop)
                     // The LCD, directly below the print now (24 pt gap).
                     LCDView(rows: [LCDRow(id: .name, value: model.nameRow),
                                    LCDRow(id: .loc, value: model.place ?? Strings.t(.empty, lang)),
@@ -62,7 +56,7 @@ struct ContentView: View {
                     // The shutter row: shutter centred; the control panel
                     // hangs from the LCD's bottom (see panelOffsetY above).
                     ZStack {
-                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, breathing: model.shutterBreathing) { model.shoot() }
+                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked) { model.shoot() }
                         HStack {
                             if panelOnLeft {
                                 ControlPanel(count: model.names.count,
@@ -117,7 +111,7 @@ struct ContentView: View {
         }
         .ignoresSafeArea()
         .statusBarHidden(true)
-        .animation(.easeInOut(duration: 0.3), value: scheme)   // cross-fade leather/panel/title/LCD on appearance change
+        .animation(.easeInOut(duration: 0.3), value: scheme)   // cross-fade leather/panel/LCD on appearance change
         .onAppear { model.start() }
         .onDisappear { model.stop() }
     }

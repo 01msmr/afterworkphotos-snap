@@ -45,7 +45,6 @@ final class AppModel {
 #endif
 
     var shutterLocked: Bool { capturing || (phase != .live && phase != .sent) }
-    var shutterBreathing: Bool { naming }
     var controlsEnabled: Bool { phase == .naming || phase == .review || phase == .failed }
     var name: String {
         if !names.isEmpty { return names[nameIndex] }
