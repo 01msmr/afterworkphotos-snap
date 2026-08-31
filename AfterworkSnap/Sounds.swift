@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 import AudioToolbox
 
-/// Short UI sound effects — tick, crunch, shutter (bundled WAVs) and the post
+/// Short UI sound effects — the bundled WAVs (see the preload list) and the post
 /// whoosh (a built-in system sound). Tick/crunch go through `AVAudioPlayer`
 /// rather than `AudioServicesPlaySystemSound`, specifically so they follow
 /// `AVAudioSession`'s active route (e.g. connected Bluetooth headphones)
@@ -13,7 +13,7 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        for name in ["tick", "crunch", "shutter", "tchack"] {
+        for name in ["tick", "crunch", "shutter", "tchack", "eject", "thup", "knock", "zip"] {
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "wav"),
                   let player = try? AVAudioPlayer(contentsOf: url) else { continue }
@@ -23,7 +23,7 @@ enum Sounds {
         return result
     }()
 
-    /// Plays a bundled sound (`"tick"`, `"crunch"`, `"shutter"`, `"tchack"`) — safe to call from
+    /// Plays a bundled sound from the preload list — safe to call from
     /// the main actor or `VoiceTrigger`'s own audio queue.
     static func play(_ name: String) {
         guard let player = players[name] else { return }

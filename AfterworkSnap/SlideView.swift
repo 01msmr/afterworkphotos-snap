@@ -37,8 +37,11 @@ struct SlideView: View {
     let enabled: Bool
     let metrics: Metrics
     let sizingLabels: [String]
+    let fireSound: String
     let onFire: () -> Void
     @State private var offset: CGFloat = 0
+    @State private var lastQuarter = 0
+    @State private var haptic = UISelectionFeedbackGenerator()
 
     /// The knob, its gap, the widest label this slide can show, and the
     /// label's own margin on both sides — never below the pt(96) minimum —
@@ -113,8 +116,16 @@ struct SlideView: View {
                     guard enabled else { return }
                     let dx = mirrored ? -g.translation.width : g.translation.width
                     offset = min(max(0, dx), travel)
+                    // The geared throw: a faint ratchet tick (sound and
+                    // haptic) at each quarter of travel on the way out.
+                    let quarter = Int(progress * 4)
+                    if quarter != lastQuarter {
+                        if quarter > lastQuarter, quarter < 4 { Sounds.play("tick"); haptic.selectionChanged() }
+                        lastQuarter = quarter
+                    }
                 }.onEnded { _ in
-                    if enabled && progress >= 0.85 { Sounds.play("tick"); onFire() }
+                    if enabled && progress >= 0.85 { Sounds.play(fireSound); onFire() }
+                    lastQuarter = 0
                     withAnimation(.spring(duration: 0.25)) { offset = 0 }
                 })
         }

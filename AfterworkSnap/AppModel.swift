@@ -19,7 +19,8 @@ final class AppModel {
     let language = Language.from(systemCode: Locale.preferredLanguages.first ?? "en")
     private(set) var phase: Phase = .live
     private(set) var full: Data?            // the capture, uncropped, with its EXIF
-    private(set) var preview: UIImage?      // decoded once, shown until retake or a finished post
+    private(set) var preview: UIImage?      // decoded once, shown until retake or the post eject
+    private(set) var ejecting = false       // the print sliding out of the viewfinder after post fires
     private(set) var fix: (Double, Double)?
     private(set) var names: [String] = []
     private(set) var nameIndex = 0
@@ -197,7 +198,7 @@ final class AppModel {
     }
 
     func retake() {
-        Sounds.play("crunch")
+        // Sounds.play("crunch")   // retired — the rewind zip on the slider is the discard sound now
         namingTask?.cancel(); namingTask = nil; naming = false
         fetchID += 1   // a late (cooperatively-cancelled but not-yet-resumed) fetch must not land after this
         placeTask?.cancel(); placeTask = nil
@@ -218,6 +219,17 @@ final class AppModel {
         guard let full, controlsEnabled else { return }
         namingTask?.cancel(); namingTask = nil; naming = false
         phase = .sending
+        // The print leaves with the eject sound: it slides out of the
+        // viewfinder and the square goes back to the live camera while
+        // the upload runs on. `full` stays for the upload (and a retry).
+        ejecting = true
+        Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            camera.freezePreview(false)
+            previewTask?.cancel(); previewTask = nil
+            preview = nil
+            ejecting = false
+        }
         Task {
             // Bounded poll, not a race: the bridged CLGeocoder call can't
             // actually be cancelled, so this only bounds our own wait —
@@ -242,7 +254,7 @@ final class AppModel {
                 try await Uploader.send(square)
                 phase = .sent
                 sign = Strings.t(.postSent, language)
-                Sounds.playSystem(1001)   // the system "mail sent" whoosh
+                Sounds.play("thup")   // the print lands
                 voiceTrigger.start()   // the shutter itself unlocks at .sent too — listen again from here
                 camera.freezePreview(false)
                 previewTask?.cancel(); previewTask = nil
@@ -252,6 +264,7 @@ final class AppModel {
                 try? await Task.sleep(for: .seconds(9))
                 if phase == .sent { sign = nil; phase = .live }
             } catch {
+                Sounds.play("knock")   // the door didn't open
                 phase = .failed
                 sign = Strings.t(.sendingError, language)
             }
