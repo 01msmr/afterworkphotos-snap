@@ -13,7 +13,9 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        for name in ["tick", "crunch", "shutter", "step", "eject", "thup", "knock", "zip"] {   // + "tchack" stays shelved in Sounds/, unloaded
+        var names = ["tick", "crunch", "shutter", "step", "eject", "thup", "knock", "zip"]   // + "tchack" stays shelved in Sounds/, unloaded
+        for pitched in ["step", "tick"] { names += (0..<5).map { "\(pitched)_p\($0)" } }   // five pre-pitched variants each — see play(_:speed:)
+        for name in names {
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "wav"),
                   let player = try? AVAudioPlayer(contentsOf: url) else { continue }
@@ -30,6 +32,13 @@ enum Sounds {
 
     /// Plays a bundled sound from the preload list — safe to call from
     /// the main actor or `VoiceTrigger`'s own audio queue.
+    /// Ratchet ticks at mechanism speed: picks one of the five
+    /// pre-pitched variants (`name_p0` … `name_p4`, 0.85x to 1.5x) by
+    /// normalized speed 0…1 — driving the gear faster raises its pitch.
+    static func play(_ name: String, speed: Double) {
+        play("\(name)_p\(min(4, max(0, Int(speed * 5))))")
+    }
+
     /// Playback hops onto its own queue — `AVAudioPlayer.play()` can
     /// block for a few ms, which is a visible hitch mid-gesture.
     private static let playQueue = DispatchQueue(label: "snap.sounds")

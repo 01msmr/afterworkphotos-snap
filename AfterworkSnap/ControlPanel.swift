@@ -23,6 +23,7 @@ struct ControlPanel: View {
     @State private var dragActive = false
     @State private var lastRounded = 0
     @State private var haptic = UISelectionFeedbackGenerator()
+    @State private var lastTickAt = Date.distantPast
 
     var body: some View {
         let height = metrics.wheel      // pt(72), the panel's full height
@@ -175,7 +176,12 @@ struct ControlPanel: View {
                     if rounded != lastRounded {
                         lastRounded = rounded
                         haptic.selectionChanged()
-                        Sounds.play("tick")
+                        // one tick per row (length, not time), pitch
+                        // rising with how fast the drum is spun
+                        let now = Date()
+                        let speed = min(1, max(0, (0.30 - now.timeIntervalSince(lastTickAt)) / 0.27))
+                        lastTickAt = now
+                        Sounds.play("tick", speed: speed)
                         selection = rounded
                     }
                 }

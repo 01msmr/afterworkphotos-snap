@@ -40,7 +40,8 @@ struct SlideView: View {
     let fireSound: String
     let onFire: () -> Void
     @State private var offset: CGFloat = 0
-    @State private var lastQuarter = 0
+    @State private var lastNotch = 0
+    @State private var lastTickAt = Date.distantPast
     @State private var haptic = UISelectionFeedbackGenerator()
 
     /// The knob, its gap, the widest label this slide can show, and the
@@ -116,18 +117,22 @@ struct SlideView: View {
                     guard enabled else { return }
                     let dx = mirrored ? -g.translation.width : g.translation.width
                     offset = min(max(0, dx), travel)
-                    // The geared throw ticks BOTH ways — a very light
-                    // metal click at each quarter, out and back. The
-                    // step into the last quarter stays silent: the fire
-                    // sound owns that moment.
-                    let quarter = Int(progress * 4)
-                    if quarter != lastQuarter {
-                        if quarter < 4 { Sounds.play("step"); haptic.selectionChanged() }
-                        lastQuarter = quarter
+                    // The geared throw ticks BOTH ways and by LENGTH:
+                    // a featherweight metal click every 9 pt of knob
+                    // travel, its pitch rising with the speed it is
+                    // being driven at.
+                    let notch = Int(offset / metrics.pt(9))
+                    if notch != lastNotch {
+                        let now = Date()
+                        let speed = min(1, max(0, (0.30 - now.timeIntervalSince(lastTickAt)) / 0.27))
+                        lastTickAt = now
+                        Sounds.play("step", speed: speed)
+                        haptic.selectionChanged()
+                        lastNotch = notch
                     }
                 }.onEnded { _ in
                     if enabled && progress >= 0.85 { Sounds.play(fireSound); onFire() }
-                    lastQuarter = 0
+                    lastNotch = 0
                     withAnimation(.spring(duration: 0.25)) { offset = 0 }
                 })
         }
