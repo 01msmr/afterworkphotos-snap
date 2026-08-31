@@ -13,9 +13,21 @@ enum CaptureError: LocalizedError {
 
 /// Plain AVCaptureSession: no flash, no deferred delivery, no depth or mattes.
 /// Those are Camera.app features, not system behaviour.
+///
+/// Where the hardware supports it (`AVCaptureMultiCamSession`), the front
+/// camera runs alongside the back one, mirrored, as the chrome shutter
+/// button's real reflection — smallest multi-cam format, preview only,
+/// never captured. Multi-cam has no presets, so the back camera keeps a
+/// multi-cam-capable format and the photo output's ceiling is raised to
+/// that format's largest photo size by hand. Without multi-cam support
+/// everything behaves exactly as before and `frontPreviewLayer` is nil.
 nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
-    let session = AVCaptureSession()
+    let session: AVCaptureSession
     let previewLayer: AVCaptureVideoPreviewLayer
+    /// The front camera, mirrored — the shutter button's reflection; nil
+    /// without multi-cam support (the button draws a silhouette instead).
+    let frontPreviewLayer: AVCaptureVideoPreviewLayer?
+    private let multiCam: Bool
     private let output = AVCapturePhotoOutput()
     private let queue = DispatchQueue(label: "snap.session")
     private var completion: ((Result<Data, Error>) -> Void)?
@@ -24,9 +36,13 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
     var onDidStartRunning: (() -> Void)?
 
     override init() {
+        multiCam = AVCaptureMultiCamSession.isMultiCamSupported
+        session = multiCam ? AVCaptureMultiCamSession() : AVCaptureSession()
         previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        frontPreviewLayer = multiCam ? AVCaptureVideoPreviewLayer(sessionWithNoConnection: session) : nil
         super.init()
         previewLayer.videoGravity = .resizeAspectFill
+        frontPreviewLayer?.videoGravity = .resizeAspectFill
         startObserver = NotificationCenter.default.addObserver(forName: AVCaptureSession.didStartRunningNotification, object: session, queue: nil) { [weak self] _ in
             self?.onDidStartRunning?()
         }
@@ -39,7 +55,7 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
         #endif
         session.beginConfiguration()
         defer { session.commitConfiguration() }
-        session.sessionPreset = .photo
+        if !multiCam { session.sessionPreset = .photo }   // multi-cam sessions have no presets
         #if DEBUG
         let deviceStart = Date()
         #endif
@@ -57,6 +73,20 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
         guard session.canAddInput(input), session.canAddOutput(output) else { throw CaptureError.cannotConfigure }
         session.addInput(input)
         session.addOutput(output)
+        if multiCam {
+            // Stand in for the missing .photo preset: a multi-cam-capable
+            // back format, and the photo ceiling raised to its largest size.
+            if !device.activeFormat.isMultiCamSupported {
+                guard let best = device.formats.filter({ $0.isMultiCamSupported })
+                    .max(by: { photoArea($0) < photoArea($1) }) else { throw CaptureError.cannotConfigure }
+                try device.lockForConfiguration()
+                device.activeFormat = best
+                device.unlockForConfiguration()
+            }
+            if let dims = largestPhotoDimensions(of: device.activeFormat) {
+                output.maxPhotoDimensions = dims
+            }
+        }
         // Ceiling for per-photo prioritization; .quality enables the
         // multi-frame fusion passes (Deep Fusion, extended low light).
         output.maxPhotoQualityPrioritization = .quality
@@ -66,6 +96,40 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
         output.enabledSemanticSegmentationMatteTypes = []
         // Without this, fileDataRepresentation() may be a proxy, not the final image.
         output.isAutoDeferredPhotoDeliveryEnabled = false
+        if multiCam { addFrontReflection() }
+    }
+
+    private func largestPhotoDimensions(of format: AVCaptureDevice.Format) -> CMVideoDimensions? {
+        format.supportedMaxPhotoDimensions.max { Int($0.width) * Int($0.height) < Int($1.width) * Int($1.height) }
+    }
+    private func photoArea(_ format: AVCaptureDevice.Format) -> Int {
+        guard let d = largestPhotoDimensions(of: format) else { return 0 }
+        return Int(d.width) * Int(d.height)
+    }
+    private func videoArea(_ format: AVCaptureDevice.Format) -> Int {
+        let d = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+        return Int(d.width) * Int(d.height)
+    }
+
+    /// The front camera into the button, best effort — any failure just
+    /// leaves the drawn silhouette; the back camera is never touched.
+    private func addFrontReflection() {
+        guard let frontPreviewLayer,
+              let front = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) else { return }
+        // The reflection is 15 mm wide: the smallest multi-cam format is
+        // plenty, and the cheapest to run.
+        if let small = front.formats.filter({ $0.isMultiCamSupported })
+            .min(by: { videoArea($0) < videoArea($1) }) {
+            do { try front.lockForConfiguration(); front.activeFormat = small; front.unlockForConfiguration() }
+            catch { return }
+        } else { return }
+        guard let input = try? AVCaptureDeviceInput(device: front), session.canAddInput(input) else { return }
+        session.addInputWithNoConnections(input)
+        guard let port = input.ports(for: .video, sourceDeviceType: front.deviceType, sourceDevicePosition: .front).first else { return }
+        let connection = AVCaptureConnection(inputPort: port, videoPreviewLayer: frontPreviewLayer)
+        guard session.canAddConnection(connection) else { return }
+        session.addConnection(connection)   // mirroring stays automatic — a mirror mirrors
+        if connection.isVideoRotationAngleSupported(90) { connection.videoRotationAngle = 90 }   // portrait-only app
     }
 
     func start() { queue.async { [session] in if !session.isRunning { session.startRunning() } } }
@@ -108,6 +172,7 @@ nonisolated final class SnapSession: NSObject, AVCapturePhotoCaptureDelegate, @u
         settings.isAutoRedEyeReductionEnabled = false
         settings.isDepthDataDeliveryEnabled = false
         settings.isPortraitEffectsMatteDeliveryEnabled = false
+        if multiCam { settings.maxPhotoDimensions = output.maxPhotoDimensions }
         output.capturePhoto(with: settings, delegate: self)
     }
 
