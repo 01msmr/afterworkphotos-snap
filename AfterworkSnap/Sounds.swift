@@ -13,7 +13,7 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        for name in ["tick", "crunch", "shutter"] {
+        for name in ["tick", "crunch", "shutter"] {   // + "tchack" (the SLR mirror slap) sits in Sounds/, deliberately unloaded
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")
                 ?? Bundle.main.url(forResource: name, withExtension: "wav"),
                   let player = try? AVAudioPlayer(contentsOf: url) else { continue }
