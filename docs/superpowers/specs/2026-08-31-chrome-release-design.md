@@ -118,6 +118,6 @@ install works. Build with ⌘B, then:
 
 ## Open
 
-- `index.html` still shows the light-mode screenshot and the red button —
-  the site describes the previous app.
 - The mm→pt table and section live in the visualization linked above.
+- (Resolved 2026-09-05: `index.html` now shows the chrome release —
+  the staged `img/app-awp20.jpg` — with copy to match.)
