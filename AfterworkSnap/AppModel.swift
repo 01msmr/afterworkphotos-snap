@@ -140,7 +140,7 @@ final class AppModel {
     /// is empty; otherwise it waits for the next time Snap comes forward.
     func takeShared() {
         guard canPick,
-              let board = UIPasteboard(name: UIPasteboard.Name(Handoff.pasteboard), create: false),
+              let board = UIPasteboard(name: UIPasteboard.Name(Handoff.pasteboard), create: true),   // made by the extension; `false` may not find it from here
               let data = board.data(forPasteboardType: Handoff.pasteboardType) else { return }
         board.items = []
         usePicked(data)

@@ -14,10 +14,16 @@ final class ShareViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         Task {
-            if let data = await firstPhoto() {
-                UIPasteboard(name: UIPasteboard.Name(Handoff.pasteboard), create: true)?
-                    .setData(data, forPasteboardType: Handoff.pasteboardType)
+            if let data = await firstPhoto(),
+               let board = UIPasteboard(name: UIPasteboard.Name(Handoff.pasteboard), create: true) {
+                board.setData(data, forPasteboardType: Handoff.pasteboardType)
                 openSnap()
+                // A named pasteboard dies with the process that made it, so
+                // this one stays until Snap has taken the photo (Snap empties
+                // the board) — at most a minute of running time.
+                for _ in 0..<600 where board.contains(pasteboardTypes: [Handoff.pasteboardType]) {
+                    try? await Task.sleep(for: .milliseconds(100))
+                }
             }
             extensionContext?.completeRequest(returningItems: nil)
         }
