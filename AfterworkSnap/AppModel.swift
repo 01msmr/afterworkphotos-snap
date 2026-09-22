@@ -252,7 +252,7 @@ final class AppModel {
             try? await Task.sleep(for: .milliseconds(1200))   // the pretend upload
             phase = .sent
             sign = Strings.t(.postSent, language)
-            Sounds.play("thup")   // the print lands, on the pretend site
+            // Sounds.play("thup")   // retired 2026-09-22 — the post ends on the sheet sound
             voiceTrigger.start()
             camera.freezePreview(false)
             full = nil; preview = nil; names = []
@@ -307,7 +307,7 @@ final class AppModel {
                 try await Uploader.send(square)
                 phase = .sent
                 sign = Strings.t(.postSent, language)
-                Sounds.play("thup")   // the print lands
+                // Sounds.play("thup")   // retired 2026-09-22 — the post ends on the sheet sound
                 voiceTrigger.start()   // the shutter itself unlocks at .sent too — listen again from here
                 camera.freezePreview(false)
                 previewTask?.cancel(); previewTask = nil

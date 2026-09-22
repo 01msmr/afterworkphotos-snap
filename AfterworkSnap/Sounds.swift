@@ -13,7 +13,7 @@ enum Sounds {
     /// (on first reference to `Sounds`), not re-created per play.
     private static let players: [String: AVAudioPlayer] = {
         var result: [String: AVAudioPlayer] = [:]
-        var names = ["tick", "crunch", "shutter", "step", "eject", "thup", "knock", "zip"]   // + "tchack" stays shelved in Sounds/, unloaded
+        var names = ["tick", "crunch", "shutter", "step", "eject", "knock", "zip"]   // + "tchack" and "thup" stay shelved in Sounds/, unloaded
         for pitched in ["step", "tick"] { names += (0..<5).map { "\(pitched)_p\($0)" } }   // five pre-pitched variants each — see play(_:speed:)
         for name in names {
             guard let url = Bundle.main.url(forResource: name, withExtension: "wav", subdirectory: "Sounds")

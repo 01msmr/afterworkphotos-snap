@@ -62,7 +62,7 @@ camera exactly as before and the button with its silhouette.
 | `tchack` | SLR mirror slap — **shelved, unloaded**, decided against | synthesized |
 | `eject` | post: an inkjet pushing the printed sheet out, 1.3 s (since 2026-09-22; the cardboard door slide was too harsh) | BigSoundBank #0169 "Inkjet printer", CC0 — 15.12–16.42 s, the feed after the head's last pass, before the silence and the handling; 120 Hz–6 kHz, faded, mean −31 dB |
 | `zip` | retake: the print drawn back in, 0.28 s | the old eject's door-slide recording **reversed**, 1.5×, softer |
-| `thup` | the print landing (post success) | synthesized |
+| `thup` | the print landing (post success) — **retired 2026-09-22, shelved, unloaded**: the post ends on the sheet sound | synthesized |
 | `knock` | dead double-knock (post failure) | synthesized |
 | `step` + `_p0…p4` | slider ratchet, featherweight, subs-free | synthesized, 5 pitches |
 | `tick` + `_p0…p4` | the drum's row tick | original, re-pitched ×5 |
@@ -83,11 +83,11 @@ drive speed (dt between ticks → 0…1 → variant).
 On the post slide's release: the eject sound, and the print slides out of
 the viewfinder to the right (0.45 s, easeIn) revealing the live view; the
 camera unfreezes after 500 ms while the upload runs on (`full` is kept
-for the upload and a retry). Success: `thup` + the sent sign; failure:
+for the upload and a retry). Success: the sent sign, silent (the `thup` is retired); failure:
 `knock` + the twitching error, as before.
 
 **Tapping the `Snap` logo runs the whole post as a demo** — eject, print
-out, sending pause (1.2 s), `thup`, sent sign — with **nothing saved and
+out, sending pause (1.2 s), sent sign — with **nothing saved and
 nothing uploaded** (`demoPost()`; needs a shot up). The old mail-whoosh
 test hook is gone; the system whoosh (1001) is no longer used anywhere.
 
