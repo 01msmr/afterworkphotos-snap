@@ -20,5 +20,7 @@ import Testing
         #expect(Strings.t(.sendingError, .de) == "SENDEFEHLER")
         #expect(Strings.t(.loc, .de) == "ort")
         #expect(Strings.t(.empty, .en) == "-")
+        #expect(Strings.t(.upload, .en) == "Upload")
+        #expect(Strings.t(.upload, .de) == "Upload")
     }
 }

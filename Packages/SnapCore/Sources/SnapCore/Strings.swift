@@ -10,7 +10,7 @@ public enum Language: String, Sendable {
 
 public enum Strings {
     public enum Key: CaseIterable, Sendable {
-        case name, loc, date, retake, post, retry, postSent, sendingError, empty
+        case name, loc, date, retake, post, retry, postSent, sendingError, empty, upload
     }
     public static func t(_ key: Key, _ lang: Language) -> String {
         switch (key, lang) {
@@ -30,6 +30,7 @@ public enum Strings {
         case (.sendingError, .en): "SENDING ERROR"
         case (.sendingError, .de): "SENDEFEHLER"
         case (.empty, _):         "-"
+        case (.upload, _):        "Upload"
         }
     }
 }
