@@ -105,6 +105,23 @@ test hook is gone; the system whoosh (1001) is no longer used anywhere.
   `INFOPLIST_KEY_CFBundleDisplayName` in the pbxproj — the build setting
   overrides the plist, both must agree.
 
+## Upload (added 2026-09-22)
+
+- **The strip**: a flat rectangle, half the screen wide, centred, 32 pt
+  high, 10 pt above the bottom row — `Theme.yellow` at 50 %, "Upload" in
+  the slides' label type, dark. It opens the system `PhotosPicker` (one
+  image, `.current` encoding: the original file, EXIF and GPS intact; no
+  library permission). Enabled only while the print is empty (the
+  shutter's rule); dimmed to 40 % otherwise.
+- **The picked photo** takes the capture's place: the print shows it, the
+  date comes from its EXIF, the place from its EXIF GPS (none → `-`), the
+  six names from Claude as usual. Post crops it square, writes JPEG (HEIC
+  in is fine) and uploads it — **no library save**, it is already there.
+- **The badge**: while a picked photo is on the print, "Upload" on 50 %
+  yellow sits in its bottom-left corner — on screen only, never in the
+  file; above the matte, leaving with the print on post, gone on retake.
+- Multi-select is a later, separate design.
+
 ## Deploying while Xcode Run refuses the phone
 
 iOS beta 8 (24A5430a) on the device vs Xcode 27 beta 6: Run balks, but
