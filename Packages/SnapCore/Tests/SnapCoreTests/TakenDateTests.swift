@@ -16,4 +16,8 @@ import ImageIO
         let jpeg = TestJPEG.make(width: 40, height: 30, exif: [kCGImagePropertyExifDateTimeOriginal: "0000:00:00 00:00:00"])
         #expect(TakenDate.from(jpeg: jpeg) == nil)
     }
+    @Test func dateFromHEIC() {
+        let heic = TestJPEG.make(width: 40, height: 30, exif: [kCGImagePropertyExifDateTimeOriginal: "2026:08:30 15:39:12"], type: .heic)
+        #expect(TakenDate.from(jpeg: heic) == "2026-08-30")
+    }
 }

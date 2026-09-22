@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 import ImageIO
+import UniformTypeIdentifiers
 @testable import SnapCore
 
 @Suite struct SquareCropTests {
@@ -106,5 +107,16 @@ import ImageIO
         #expect(tiff?[kCGImagePropertyTIFFMake] as? String == "Apple")   // merged, not replaced
         let iptc = p[kCGImagePropertyIPTCDictionary] as? [CFString: Any]
         #expect(iptc?[kCGImagePropertyIPTCCity] as? String == "Markdorf")
+    }
+
+    @Test func heicInComesOutAsJPEGWithItsExif() throws {
+        let heic = TestJPEG.make(width: 400, height: 300, exif: [kCGImagePropertyExifDateTimeOriginal: "2026:08:30 15:39:12"],
+                                 gps: GPSDictionary.make(latitude: 47.66, longitude: 9.39), type: .heic)
+        let out = try SquareCrop.centered(in: heic)
+        let source = CGImageSourceCreateWithData(out as CFData, nil)!
+        #expect(CGImageSourceGetType(source) as String? == UTType.jpeg.identifier)
+        #expect(size(out) == (300, 300))
+        #expect(TakenDate.from(jpeg: out) == "2026-08-30")
+        #expect(GPSDictionary.coordinate(in: out) != nil)
     }
 }
