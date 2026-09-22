@@ -107,8 +107,10 @@ test hook is gone; the system whoosh (1001) is no longer used anywhere.
 
 ## Upload (added 2026-09-22)
 
-- **The strip**: a flat rectangle, half the screen wide, centred, 32 pt
-  high, 10 pt above the bottom row — `Theme.yellow` at 50 %, "Upload" in
+- **The strip**: a flat rectangle, half the screen wide, centred, 45 pt
+  high, corners 8 % of that, 10 pt above the bottom row (reserved in the
+  fixed stack: height-bound screens shrink the print 13 pt) —
+  `Theme.yellow` at 50 %, "Upload" in
   the slides' label type, dark. It opens the system `PhotosPicker` (one
   image, `.current` encoding: the original file, EXIF and GPS intact; no
   library permission). Enabled only while the print is empty (the

@@ -119,8 +119,9 @@ struct ContentView: View {
                     // library photo instead of a shot, while the print is empty.
                     PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current) {
                         UploadLabel(text: Strings.t(.upload, lang), metrics: m)
-                            .frame(width: geo.size.width / 2, height: m.pt(32))
+                            .frame(width: geo.size.width / 2, height: m.uploadH)
                             .background(Theme.yellow.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: m.uploadH * 0.08))
                     }
                     .disabled(!model.canPick)
                     .opacity(model.canPick ? 1 : 0.4)

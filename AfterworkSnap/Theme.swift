@@ -20,9 +20,10 @@ struct Metrics {
     /// row → bottom row, reused as a minimum-clearance figure since the
     /// bottom row is independently bottom-anchored, not stacked
     /// sequentially, 24) + slideH (40) + 30 spare — kept as one constant
-    /// so it can't drift from them. The Upload strip (32 + 10 gap) lives
-    /// in gapShutter + spare, 12 pt clear of the shutter at the tightest.
-    private static let fixedStack: CGFloat = 24 + 78 + 32 + 96 + 24 + 40 + 30
+    /// so it can't drift from them. The Upload strip (uploadH 45 + 10
+    /// gap) lives in gapShutter + spare + 13, 12 pt clear of the shutter
+    /// at the tightest.
+    private static let fixedStack: CGFloat = 24 + 78 + 32 + 96 + 24 + 40 + 30 + 13
 
     init(width: CGFloat, height: CGFloat) {
         scale = width < 393 ? width / 393 : 1
@@ -47,6 +48,7 @@ struct Metrics {
     var slideH: CGFloat { pt(40) }
     var knob: CGFloat { pt(32) }
     var slideBottom: CGFloat { pt(30) }
+    var uploadH: CGFloat { pt(45) }
     var labelInset: CGFloat { pt(16) }
 }
 
