@@ -7,14 +7,46 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A5E00000000000000000141 /* SnapShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5A5E00000000000000000120 /* SnapShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5A5E00000000000000000131 /* SnapCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5A5E00000000000000000130 /* SnapCore */; };
 		557AA3023043108900E32403 /* SnapCore in Frameworks */ = {isa = PBXBuildFile; productRef = 557AA3013043108900E32403 /* SnapCore */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		5A5E00000000000000000150 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A5E00000000000000000100;
+			remoteInfo = SnapShare;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5A5E00000000000000000140 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5A5E00000000000000000141 /* SnapShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5A5E00000000000000000120 /* SnapShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SnapShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000120 /* AfterworkSnap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AfterworkSnap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5A5E00000000000000000011 /* Exceptions for "SnapShare" folder in "SnapShare" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5A5E00000000000000000100 /* SnapShare */;
+		};
 		557AA304304311C100E32403 /* Exceptions for "AfterworkSnap" folder in "AfterworkSnap" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -26,6 +58,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5A5E00000000000000000010 /* SnapShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5A5E00000000000000000011 /* Exceptions for "SnapShare" folder in "SnapShare" target */,
+			);
+			path = SnapShare;
+			sourceTree = "<group>";
+		};
 		000000000000000000000010 /* AfterworkSnap */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -37,6 +77,12 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5A5E00000000000000000122 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				5A5E00000000000000000131 /* SnapCore in Frameworks */,
+			);
+		};
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
@@ -50,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* AfterworkSnap */,
+				5A5E00000000000000000010 /* SnapShare */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -58,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* AfterworkSnap.app */,
+				5A5E00000000000000000120 /* SnapShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,8 +120,12 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				5A5E00000000000000000140 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				5A5E00000000000000000151 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* AfterworkSnap */,
@@ -85,6 +137,27 @@
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* AfterworkSnap.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5A5E00000000000000000100 /* SnapShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A5E00000000000000000110 /* Build configuration list for PBXNativeTarget "SnapShare" */;
+			buildPhases = (
+				5A5E00000000000000000121 /* Sources */,
+				5A5E00000000000000000122 /* Frameworks */,
+				5A5E00000000000000000123 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A5E00000000000000000010 /* SnapShare */,
+			);
+			name = SnapShare;
+			packageProductDependencies = (
+				5A5E00000000000000000130 /* SnapCore */,
+			);
+			productName = SnapShare;
+			productReference = 5A5E00000000000000000120 /* SnapShare.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -119,11 +192,17 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* AfterworkSnap */,
+				5A5E00000000000000000100 /* SnapShare */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5A5E00000000000000000123 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 		000000000000000140000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
@@ -132,12 +211,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5A5E00000000000000000121 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		000000000000000120000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5A5E00000000000000000151 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A5E00000000000000000100 /* SnapShare */;
+			targetProxy = 5A5E00000000000000000150 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "AfterworkSnap" */ = {
@@ -368,6 +460,60 @@
 			};
 			name = Release;
 		};
+		5A5E00000000000000000111 /* Debug configuration for PBXNativeTarget "SnapShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NYR46ZTFD7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SnapShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Snap;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.msmr.afterworksnap.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5A5E00000000000000000112 /* Release configuration for PBXNativeTarget "SnapShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NYR46ZTFD7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SnapShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Snap;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.msmr.afterworksnap.share;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -387,6 +533,14 @@
 			);
 			defaultConfigurationName = Release;
 		};
+		5A5E00000000000000000110 /* Build configuration list for PBXNativeTarget "SnapShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A5E00000000000000000111 /* Debug configuration for PBXNativeTarget "SnapShare" */,
+				5A5E00000000000000000112 /* Release configuration for PBXNativeTarget "SnapShare" */,
+			);
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -398,6 +552,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		557AA3013043108900E32403 /* SnapCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SnapCore;
+		};
+		5A5E00000000000000000130 /* SnapCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SnapCore;
 		};

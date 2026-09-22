@@ -122,6 +122,14 @@ test hook is gone; the system whoosh (1001) is no longer used anywhere.
 - **The badge**: while a picked photo is on the print, "Upload" on 50 %
   yellow sits in its bottom-left corner — on screen only, never in the
   file; above the matte, leaving with the print on post, gone on retake.
+- **Share with Snap** (the `SnapShare` extension): in Photos' share sheet,
+  any number of photos, the first is taken. Its original file goes onto
+  the named pasteboard `co.msmr.afterworksnap.picked` (the signing team
+  is a free one — no App Groups), then the extension opens
+  `afterworksnap://picked` up the responder chain (not allowed to
+  extensions officially; fine off the App Store). Snap takes the photo on
+  that URL or whenever it comes forward, only while the print is empty,
+  and empties the pasteboard — from there it is the Upload flow.
 - Multi-select is a later, separate design.
 
 ## Deploying while Xcode Run refuses the phone

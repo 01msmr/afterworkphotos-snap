@@ -8,6 +8,7 @@ docs/superpowers/specs/2026-08-29-snap-design.md.
 ## Layout
 
 AfterworkSnap/        app target — buildable folder, framework code only
+SnapShare/            share extension — "Share with Snap", hands the photo over
 Packages/SnapCore/    pure logic — the only place with tests
 upload.php            the endpoint; deployed by commit, the server pulls main
 

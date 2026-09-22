@@ -5,6 +5,7 @@ import SnapCore
 struct ContentView: View {
     @State private var model = AppModel()
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("panelOnLeft") private var panelOnLeft = false
     @State private var pickedItem: PhotosPickerItem?
 
@@ -153,6 +154,8 @@ struct ContentView: View {
                 }
             }
         }
+        .onOpenURL { _ in model.takeShared() }   // afterworksnap://picked, from the share extension
+        .onChange(of: scenePhase) { if scenePhase == .active { model.takeShared() } }   // opened by hand after a share
         .onAppear { model.start() }
         .onDisappear { model.stop() }
     }

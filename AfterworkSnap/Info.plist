@@ -6,6 +6,17 @@
 	<string>$(ANTHROPIC_API_KEY)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Snap</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>co.msmr.afterworksnap</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>afterworksnap</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Listens for the word “snap”.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

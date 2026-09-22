@@ -135,6 +135,17 @@ final class AppModel {
         saved = true
     }
 
+    /// "Share with Snap": the extension left the photo on the handoff
+    /// pasteboard. Taken (and the pasteboard emptied) only while the print
+    /// is empty; otherwise it waits for the next time Snap comes forward.
+    func takeShared() {
+        guard canPick,
+              let board = UIPasteboard(name: UIPasteboard.Name(Handoff.pasteboard), create: false),
+              let data = board.data(forPasteboardType: Handoff.pasteboardType) else { return }
+        board.items = []
+        usePicked(data)
+    }
+
     /// A photo is up: date, place lookup, names and the decoded print —
     /// shared by the shutter and the Upload button.
     private func begin(with data: Data, fix: (Double, Double)?) {
