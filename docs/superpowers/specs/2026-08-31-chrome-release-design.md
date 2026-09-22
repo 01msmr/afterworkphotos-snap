@@ -60,7 +60,7 @@ camera exactly as before and the button with its silhouette.
 |---|---|---|
 | `shutter` | the shot: short "ti-k", 70 ms, noise-built, nothing glassy | synthesized |
 | `tchack` | SLR mirror slap — **shelved, unloaded**, decided against | synthesized |
-| `eject` | post: an inkjet pushing the printed sheet out, 1.3 s (since 2026-09-22; the cardboard door slide was too harsh) | BigSoundBank #0169 "Inkjet printer", CC0 — 15.12–16.42 s, the feed after the head's last pass, before the silence and the handling; 120 Hz–6 kHz, faded, mean −31 dB |
+| `eject` | post: an inkjet pushing the printed sheet out, 1.0 s, loud from the first 50 ms (since 2026-09-22; the cardboard door slide was too harsh) | BigSoundBank #0169 "Inkjet printer", CC0 — 15.44–16.42 s, the push from its first hit (the rollers' wind-up before it cut: the sound must start on the slide's release), before the silence and the handling; 120 Hz–6 kHz, 5 ms fade in, mean −31 dB |
 | `zip` | retake: the print drawn back in, 0.28 s | the old eject's door-slide recording **reversed**, 1.5×, softer |
 | `thup` | the print landing (post success) — **retired 2026-09-22, shelved, unloaded**: the post ends on the sheet sound | synthesized |
 | `knock` | dead double-knock (post failure) | synthesized |
