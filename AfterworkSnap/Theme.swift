@@ -20,7 +20,8 @@ struct Metrics {
     /// row → bottom row, reused as a minimum-clearance figure since the
     /// bottom row is independently bottom-anchored, not stacked
     /// sequentially, 24) + slideH (40) + 30 spare — kept as one constant
-    /// so it can't drift from them.
+    /// so it can't drift from them. The Upload strip (32 + 10 gap) lives
+    /// in gapShutter + spare, 12 pt clear of the shutter at the tightest.
     private static let fixedStack: CGFloat = 24 + 78 + 32 + 96 + 24 + 40 + 30
 
     init(width: CGFloat, height: CGFloat) {
@@ -58,6 +59,7 @@ enum Theme {
     static let track = Color(red: 0x8c/255, green: 0x8c/255, blue: 0x8c/255)
     static let red = Color(red: 0xc8/255, green: 0x10/255, blue: 0x0a/255)
     static let green = Color(red: 0x1a/255, green: 0x9a/255, blue: 0x3a/255)
+    static let yellow = Color(red: 0xf5/255, green: 0xc5/255, blue: 0x18/255)   // Upload: the button and the print's badge, at 50 %
 
     static func body(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? Color(red: 0x16/255, green: 0x16/255, blue: 0x16/255)

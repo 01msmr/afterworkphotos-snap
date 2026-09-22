@@ -30,6 +30,7 @@ final class AppModel {
     private(set) var sign: String?          // "Post sent." / "SENDING ERROR"
     private(set) var naming = false         // true from fetchNames() start until this fetch lands
     private(set) var isLive = false          // the session has started running
+    private(set) var picked = false          // the photo up came from the library, not the shutter — the print wears the Upload badge
     let camera = SnapSession()
     private let location = LocationSource()
     private let voiceTrigger = VoiceTrigger()
@@ -113,34 +114,58 @@ final class AppModel {
             guard let self else { return }
             capturing = false
             guard let data = try? result.get() else { camera.freezePreview(false); return }
-            full = data
-            self.fix = fix
-            date = TakenDate.from(jpeg: data)
-            place = nil
-            names = []; nameIndex = 0; showIndex = false
-            saved = false
-            phase = .naming
-            placeTask?.cancel()
-            if let fix {
-                placeDone = false
-                placeTask = Task { [weak self] in
-                    guard let self else { return }
-                    let name = await self.location.placeName(for: fix)
-                    guard !Task.isCancelled else { return }
-                    self.place = name
-                    self.placeDone = true
-                }
-            } else {
-                placeTask = nil
-                placeDone = true
-            }
-            fetchNames()
-            previewTask?.cancel()
-            previewTask = Task { [weak self] in
-                let image = await Task.detached(priority: .userInitiated) { UIImage(data: data) }.value
+            begin(with: data, fix: fix)
+        }
+    }
+
+    /// The Upload button: only while the print is empty, like the shutter.
+    var canPick: Bool { !shutterLocked && full == nil }
+
+    /// A photo picked from the library takes the capture's place: the
+    /// same naming, place and date, the same post — its date and place
+    /// come from its own EXIF. It is already in the library, so post
+    /// only uploads it.
+    func usePicked(_ data: Data) {
+        guard canPick else { return }
+        sign = nil
+        voiceTrigger.stop()
+        camera.freezePreview(true)
+        begin(with: data, fix: GPSDictionary.coordinate(in: data))
+        picked = true
+        saved = true
+    }
+
+    /// A photo is up: date, place lookup, names and the decoded print —
+    /// shared by the shutter and the Upload button.
+    private func begin(with data: Data, fix: (Double, Double)?) {
+        full = data
+        self.fix = fix
+        date = TakenDate.from(jpeg: data)
+        place = nil
+        names = []; nameIndex = 0; showIndex = false
+        saved = false
+        picked = false
+        phase = .naming
+        placeTask?.cancel()
+        if let fix {
+            placeDone = false
+            placeTask = Task { [weak self] in
+                guard let self else { return }
+                let name = await self.location.placeName(for: fix)
                 guard !Task.isCancelled else { return }
-                self?.preview = image
+                self.place = name
+                self.placeDone = true
             }
+        } else {
+            placeTask = nil
+            placeDone = true
+        }
+        fetchNames()
+        previewTask?.cancel()
+        previewTask = Task { [weak self] in
+            let image = await Task.detached(priority: .userInitiated) { UIImage(data: data) }.value
+            guard !Task.isCancelled else { return }
+            self?.preview = image
         }
     }
 
@@ -202,7 +227,7 @@ final class AppModel {
         camera.freezePreview(false)
         full = nil; preview = nil; names = []; sign = nil; phase = .live
         place = nil; date = nil; nameIndex = 0; showIndex = false
-        saved = false
+        saved = false; picked = false
         voiceTrigger.start()
     }
 
@@ -232,7 +257,7 @@ final class AppModel {
             camera.freezePreview(false)
             full = nil; preview = nil; names = []
             place = nil; date = nil; nameIndex = 0; showIndex = false
-            saved = false
+            saved = false; picked = false
             try? await Task.sleep(for: .seconds(9))
             if phase == .sent { sign = nil; phase = .live }
         }
@@ -288,7 +313,7 @@ final class AppModel {
                 previewTask?.cancel(); previewTask = nil
                 self.full = nil; self.preview = nil; names = []
                 place = nil; date = nil; nameIndex = 0; showIndex = false
-                saved = false
+                saved = false; picked = false
                 try? await Task.sleep(for: .seconds(9))
                 if phase == .sent { sign = nil; phase = .live }
             } catch {

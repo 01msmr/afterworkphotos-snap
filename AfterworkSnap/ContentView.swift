@@ -1,10 +1,12 @@
 import SwiftUI
+import PhotosUI
 import SnapCore
 
 struct ContentView: View {
     @State private var model = AppModel()
     @Environment(\.colorScheme) private var scheme
     @AppStorage("panelOnLeft") private var panelOnLeft = false
+    @State private var pickedItem: PhotosPickerItem?
 
     var body: some View {
         GeometryReader { geo in
@@ -37,6 +39,18 @@ struct ContentView: View {
                     .overlay(Color.white.opacity(0.045))                     // the matte screen's faint milk
                     .saturation(0.90).contrast(0.94)                         // ground glass, not gloss
                     .frame(width: printSide, height: printSide)
+                    // A library photo wears the Upload badge — on screen only,
+                    // never in the file; above the matte, leaving with the print.
+                    .overlay(alignment: .bottomLeading) {
+                        if model.picked && model.preview != nil {
+                            UploadLabel(text: Strings.t(.upload, lang), metrics: m)
+                                .padding(.horizontal, m.pt(8)).padding(.vertical, m.pt(4))
+                                .background(Theme.yellow.opacity(0.5))
+                                .padding(m.pt(10))
+                                .offset(x: model.ejecting ? printSide : 0)
+                                .animation(.easeIn(duration: 0.45), value: model.ejecting)
+                        }
+                    }
                     .clipShape(RoundedRectangle(cornerRadius: m.pt(6)))
                     .overlay(RoundedRectangle(cornerRadius: m.pt(6)).stroke(Theme.shade(scheme).opacity(0.35), lineWidth: 1))
                     .overlay(                                                // letterpress: top and left wall in shadow
@@ -100,7 +114,17 @@ struct ContentView: View {
                 }
                 // Bottom row: retake — Snap (centred between them, vertically
                 // centred on the slides) — post.
-                VStack { Spacer()
+                VStack(spacing: 0) { Spacer()
+                    // The Upload strip, directly above the bottom row: a
+                    // library photo instead of a shot, while the print is empty.
+                    PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current) {
+                        UploadLabel(text: Strings.t(.upload, lang), metrics: m)
+                            .frame(width: geo.size.width / 2, height: m.pt(32))
+                            .background(Theme.yellow.opacity(0.5))
+                    }
+                    .disabled(!model.canPick)
+                    .opacity(model.canPick ? 1 : 0.4)
+                    .padding(.bottom, m.pt(10))
                     HStack {
                         SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)], fireSound: "zip") { model.retake() }
                         Spacer()
@@ -116,7 +140,31 @@ struct ContentView: View {
         .ignoresSafeArea()
         .statusBarHidden(true)
         .animation(.easeInOut(duration: 0.3), value: scheme)   // cross-fade leather/panel/LCD on appearance change
+        .onChange(of: pickedItem) {
+            guard let item = pickedItem else { return }
+            pickedItem = nil
+            Task {
+                // .current encoding: the original file, EXIF and GPS intact.
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    model.usePicked(data)
+                } else {
+                    Sounds.play("knock")   // the photo didn't come
+                }
+            }
+        }
         .onAppear { model.start() }
         .onDisappear { model.stop() }
+    }
+}
+
+/// "Upload" in the slides' label type, dark on 50 % yellow — the strip's
+/// face and the print's badge; the caller sizes the rectangle.
+private struct UploadLabel: View {
+    let text: String
+    let metrics: Metrics
+    var body: some View {
+        Text(text)
+            .font(.system(size: metrics.pt(12), weight: .semibold))
+            .foregroundStyle(.black.opacity(0.85))
     }
 }
