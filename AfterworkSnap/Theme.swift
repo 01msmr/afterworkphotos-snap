@@ -20,8 +20,8 @@ struct Metrics {
     /// row → bottom row, reused as a minimum-clearance figure since the
     /// bottom row is independently bottom-anchored, not stacked
     /// sequentially, 24) + slideH (40) + 30 spare — kept as one constant
-    /// so it can't drift from them. The Upload button (square, the
-    /// shutter's 96, + 10 gap) lives in gapShutter + spare + 64, 12 pt
+    /// so it can't drift from them. The Upload button (square, 80 % of
+    /// the shutter's 96, + 10 gap) lives in gapShutter + spare + 64, 31 pt
     /// clear of the shutter at the tightest.
     private static let fixedStack: CGFloat = 24 + 78 + 32 + 96 + 24 + 40 + 30 + 64
 

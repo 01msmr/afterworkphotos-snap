@@ -121,12 +121,12 @@ struct ContentView: View {
                 VStack(spacing: 0) { Spacer()
                     // The Upload button, directly above the bottom row: a
                     // library photo instead of a shot, while the print is empty.
-                    // Square, the shutter's width; its label bold and 30 % up.
+                    // Square, 80 % of the shutter's width; its label bold and 30 % up.
                     PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current) {
                         UploadLabel(text: Strings.t(.upload, lang), metrics: m, size: 12 * 1.3, weight: .bold)
-                            .frame(width: m.shutter, height: m.shutter)
+                            .frame(width: m.shutter * 0.8, height: m.shutter * 0.8)
                             .background(Theme.yellow.opacity(0.5))
-                            .clipShape(RoundedRectangle(cornerRadius: m.shutter * 0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: m.shutter * 0.8 * 0.08))
                     }
                     .simultaneousGesture(TapGesture().onEnded { Sounds.wake() })
                     .disabled(!model.canPick)
