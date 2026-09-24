@@ -47,8 +47,8 @@ struct ContentView: View {
                     // never in the file; above the matte, leaving with the print.
                     .overlay(alignment: .bottomLeading) {
                         if model.picked && model.preview != nil {
-                            UploadLabel(text: Strings.t(.upload, lang), metrics: m)
-                                .padding(.horizontal, m.pt(8)).padding(.vertical, m.pt(4))
+                            UploadLabel(text: Strings.t(.upload, lang), metrics: m, size: 12 * 1.3)   // 30 % up
+                                .padding(.horizontal, m.pt(8 * 1.3)).padding(.vertical, m.pt(4 * 1.3))
                                 .background(Theme.yellow.opacity(0.5))
                                 .padding(m.pt(10))
                                 .offset(x: model.ejecting ? printSide : 0)
