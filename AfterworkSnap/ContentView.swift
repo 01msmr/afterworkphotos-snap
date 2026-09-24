@@ -85,6 +85,7 @@ struct ContentView: View {
                                              selection: Binding(get: { model.nameIndex }, set: { model.select($0) }),
                                              enabled: model.controlsEnabled, metrics: m, mirrored: true,
                                              onCenter: { model.fetchNames() })
+                                    .opacity(model.preview == nil ? 0.7 : 1)   // the panel at 70 % while the print is empty
                                     .padding(.leading, side)
                                 Spacer()
                             } else {
@@ -93,6 +94,7 @@ struct ContentView: View {
                                              selection: Binding(get: { model.nameIndex }, set: { model.select($0) }),
                                              enabled: model.controlsEnabled, metrics: m, mirrored: false,
                                              onCenter: { model.fetchNames() })
+                                    .opacity(model.preview == nil ? 0.7 : 1)   // the panel at 70 % while the print is empty
                                     .padding(.trailing, side)
                             }
                         }
