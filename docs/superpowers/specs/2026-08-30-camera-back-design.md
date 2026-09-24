@@ -66,6 +66,8 @@ iPad alike; the status bar is hidden.
 | LCD | 4 % sides, height 78, 32 below the shutter | green-grey (`#c9d3c2 → #b9c4b2`), ink `#1b2a1b`, recessed, black 4 pt bezel; monospace 14 pt; three rows, labels 10 pt at the left, empty content `-` |
 | retake slide | bottom 30, left 4 %, 124 × 40 | mirrored: knob at rest at the inner (right) end, slides outward to the left; label 16 pt from the track's left end — the same margin as post's |
 | post slide | bottom 30, right 4 %, 124 × 40 | knob at rest at the inner (left) end, slides outward to the right; label 16 pt from the track's right end |
+| Upload button | centred, 10 above the bottom row, square, 80 % of the shutter's width | yellow `#f5c518` at 50 %, 8 % corners, `Upload` bold 15.6 pt; picks a library photo instead of a shot, only while the print is empty (else 40 %). The photo is uploaded, never saved again. |
+| Upload badge | on the print, bottom left, 10 in | the same yellow; `Upload` semibold 15.6 pt, padding 10.4 × 5.2; on screen only, never in the file; leaves with the print |
 
 **Slides.** Track mid-grey `#8c8c8c`, knob Ø 32 domed; the label is white
 at all times, also when inactive (only the knob greys). While the knob
