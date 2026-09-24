@@ -40,8 +40,12 @@ nonisolated final class VoiceTrigger: NSObject, @unchecked Sendable {
         }
     }
 
-    func stop() {
-        audioQueue.async { [weak self] in self?.stopListening() }
+    /// `keepSession`: stop listening but leave the audio session up —
+    /// a shot or a pick pauses the ear while a print is up, and the
+    /// eject sound must not wait for the hardware to wake. Only leaving
+    /// the app lets the session go.
+    func stop(keepSession: Bool = false) {
+        audioQueue.async { [weak self] in self?.stopListening(keepSession: keepSession) }
     }
 
     private func requestAuthorizations(completion: @escaping (Bool) -> Void) {
@@ -91,7 +95,7 @@ nonisolated final class VoiceTrigger: NSObject, @unchecked Sendable {
         startRecognitionTask(recognizer: recognizer)
     }
 
-    private func stopListening() {
+    private func stopListening(keepSession: Bool) {
         listening = false
         task?.cancel(); task = nil
         request?.endAudio(); request = nil
@@ -99,6 +103,7 @@ nonisolated final class VoiceTrigger: NSObject, @unchecked Sendable {
             audioEngine.stop()
             audioEngine.inputNode.removeTap(onBus: 0)
         }
+        guard !keepSession else { return }
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 

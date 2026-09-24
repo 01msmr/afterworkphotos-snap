@@ -50,6 +50,47 @@ enum Sounds {
         }
     }
 
+    /// Cuts a playing sound short with a few-ms fade, so it ends without
+    /// a click; the volume is restored for the next play.
+    static func stop(_ name: String) {
+        playQueue.async {
+            guard let player = players[name], player.isPlaying else { return }
+            player.setVolume(0, fadeDuration: 0.03)
+            playQueue.asyncAfter(deadline: .now() + 0.03) {
+                player.stop()
+                player.volume = 1
+            }
+        }
+    }
+
+    /// Wakes the audio hardware when the shutter or the Upload button is
+    /// pressed, so the sounds that follow (the shutter's, the eject)
+    /// start at once instead of waiting for it. Off the main thread —
+    /// `setActive` can block. The category stays whatever is set.
+    static func wake() {
+        playQueue.async {
+            try? AVAudioSession.sharedInstance().setActive(true)
+            players["eject"]?.prepareToPlay()
+        }
+    }
+
+    /// Plays, then calls `audible` on the main actor once the sound is
+    /// actually coming out — after `play()` has started it, plus the
+    /// route's output latency (a few ms on the speaker, far more over
+    /// Bluetooth). For motion that must move with its sound.
+    static func play(_ name: String, audible: @escaping @MainActor () -> Void) {
+        playQueue.async {
+            if let player = players[name] {
+                player.currentTime = 0
+                player.play()
+            }
+            let latency = AVAudioSession.sharedInstance().outputLatency
+            DispatchQueue.main.asyncAfter(deadline: .now() + latency) {
+                MainActor.assumeIsolated { audible() }
+            }
+        }
+    }
+
     /// A well-known built-in system sound — no bundled file, no
     /// `AVAudioPlayer` needed. Used for the post-success "mail sent"
     /// whoosh, ID 1001. Kept as `AudioServicesPlaySystemSound` per the

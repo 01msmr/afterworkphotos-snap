@@ -106,7 +106,7 @@ final class AppModel {
         guard !shutterLocked else { return }
         sign = nil
         capturing = true
-        voiceTrigger.stop()
+        voiceTrigger.stop(keepSession: true)
         camera.freezePreview(true)                 // instant still, until retake or a finished post
         Sounds.play("shutter")   // the decided voice: the short ti-k (tchack stays shelved in Sounds/)
         let fix = location.usableFix
@@ -128,7 +128,7 @@ final class AppModel {
     func usePicked(_ data: Data) {
         guard canPick else { return }
         sign = nil
-        voiceTrigger.stop()
+        voiceTrigger.stop(keepSession: true)
         camera.freezePreview(true)
         begin(with: data, fix: GPSDictionary.coordinate(in: data))
         picked = true
@@ -250,15 +250,7 @@ final class AppModel {
         guard full != nil, controlsEnabled else { return }
         namingTask?.cancel(); namingTask = nil; naming = false
         phase = .sending
-        Sounds.play("eject")   // the slider would have played this on the real post
-        ejecting = true
-        Task {
-            try? await Task.sleep(for: .milliseconds(500))
-            camera.freezePreview(false)
-            previewTask?.cancel(); previewTask = nil
-            preview = nil
-            ejecting = false
-        }
+        Sounds.play("eject") { self.eject() }   // the slider would have played this on the real post
         Task {
             try? await Task.sleep(for: .milliseconds(1200))   // the pretend upload
             phase = .sent
@@ -274,6 +266,29 @@ final class AppModel {
         }
     }
 
+    /// How long the print takes to slide out — ContentView animates by it.
+    static let ejectDuration = 0.71
+
+    /// The eject sound runs on this long after the sheet is gone.
+    static let ejectSoundTail = 0.19
+
+    /// The print slides out to the right, the square back to the live
+    /// camera; the eject sound runs the whole slide and a short tail past it.
+    private func eject() {
+        ejecting = true
+        Task {
+            try? await Task.sleep(for: .seconds(Self.ejectDuration + Self.ejectSoundTail))
+            Sounds.stop("eject")
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(Self.ejectDuration + 0.05))
+            camera.freezePreview(false)
+            previewTask?.cancel(); previewTask = nil
+            preview = nil
+            ejecting = false
+        }
+    }
+
     /// A fresh encode with the LCD's current name and place; to the
     /// library once, then to the site every time (a retry after `.failed`
     /// re-encodes with whatever the LCD shows now — the site always gets
@@ -283,17 +298,11 @@ final class AppModel {
         guard let full, controlsEnabled else { return }
         namingTask?.cancel(); namingTask = nil; naming = false
         phase = .sending
-        // The print leaves with the eject sound: it slides out of the
-        // viewfinder and the square goes back to the live camera while
-        // the upload runs on. `full` stays for the upload (and a retry).
-        ejecting = true
-        Task {
-            try? await Task.sleep(for: .milliseconds(500))
-            camera.freezePreview(false)
-            previewTask?.cancel(); previewTask = nil
-            preview = nil
-            ejecting = false
-        }
+        // The print leaves with the eject sound: once it is audible, it
+        // slides out of the viewfinder and the square goes back to the
+        // live camera while the upload runs on. `full` stays for the
+        // upload (and a retry).
+        Sounds.play("eject") { self.eject() }
         Task {
             // Bounded poll, not a race: the bridged CLGeocoder call can't
             // actually be cancelled, so this only bounds our own wait —

@@ -80,9 +80,12 @@ drive speed (dt between ticks → 0…1 → variant).
 
 ## The post theatre
 
-On the post slide's release: the eject sound, and the print slides out of
-the viewfinder to the right (0.45 s, easeIn) revealing the live view; the
-camera unfreezes after 500 ms while the upload runs on (`full` is kept
+On the post slide's release: the eject sound, and once it is audible the
+print slides out of the viewfinder to the right (`AppModel.ejectDuration`,
+0.71 s, easeIn) revealing the live view; the sound runs the whole slide and
+0.19 s past it (`ejectSoundTail`), then is cut (30 ms fade); the camera
+unfreezes 50 ms after the sheet leaves
+while the upload runs on (`full` is kept
 for the upload and a retry). Success: the sent sign, silent (the `thup` is retired); failure:
 `knock` + the twitching error, as before.
 
@@ -107,11 +110,11 @@ test hook is gone; the system whoosh (1001) is no longer used anywhere.
 
 ## Upload (added 2026-09-22)
 
-- **The strip**: a flat rectangle, half the screen wide, centred, 45 pt
-  high, corners 8 % of that, 10 pt above the bottom row (reserved in the
-  fixed stack: height-bound screens shrink the print 13 pt) —
-  `Theme.yellow` at 50 %, "Upload" in
-  the slides' label type, dark. It opens the system `PhotosPicker` (one
+- **The button** (square since 2026-09-24; was a half-width strip, 45 pt
+  high): the shutter's width (96 pt) on each side, centred, corners 8 %
+  of that, 10 pt above the bottom row (reserved in the fixed stack:
+  height-bound screens shrink the print 64 pt) — `Theme.yellow` at 50 %,
+  "Upload" bold, 30 % larger than the slides' label type, dark. It opens the system `PhotosPicker` (one
   image, `.current` encoding: the original file, EXIF and GPS intact; no
   library permission). Enabled only while the print is empty (the
   shutter's rule); dimmed to 40 % otherwise.

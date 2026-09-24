@@ -20,6 +20,9 @@ struct ContentView: View {
             // formula, since the LCD is now above the shutter row, not below.
             let panelOffsetY = -((m.shutter - m.wheel) / 2 + m.gapLCD - m.pt(12))
             let sideGap = max(0, (geo.size.width - m.shutter) / 2)               // screen edge → shutter, one side
+            // Both slides sized from every word either might show, in both
+            // languages: always the same width, so the logo sits dead centre.
+            let slideWords = [Language.en, .de].flatMap { l in [Strings.Key.retake, .post, .retry].map { Strings.t($0, l) } }
             ZStack(alignment: .top) {
                 Leather(metrics: m)
                 VStack(spacing: 0) {
@@ -34,7 +37,7 @@ struct ContentView: View {
                         if let image = model.preview {
                             Image(uiImage: image).resizable().scaledToFill()
                                 .offset(x: model.ejecting ? printSide : 0)   // the print pushes out to the right, revealing the live view
-                                .animation(.easeIn(duration: 0.45), value: model.ejecting)
+                                .animation(.easeIn(duration: AppModel.ejectDuration), value: model.ejecting)
                         }
                     }
                     .overlay(Color.white.opacity(0.045))                     // the matte screen's faint milk
@@ -49,7 +52,7 @@ struct ContentView: View {
                                 .background(Theme.yellow.opacity(0.5))
                                 .padding(m.pt(10))
                                 .offset(x: model.ejecting ? printSide : 0)
-                                .animation(.easeIn(duration: 0.45), value: model.ejecting)
+                                .animation(.easeIn(duration: AppModel.ejectDuration), value: model.ejecting)
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: m.pt(6)))
@@ -75,7 +78,7 @@ struct ContentView: View {
                     // The shutter row: shutter centred; the control panel
                     // hangs from the LCD's bottom (see panelOffsetY above).
                     ZStack {
-                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, reflection: model.camera.frontPreviewLayer, onTouch: { model.shutterHeld = $0 }) { model.shoot() }
+                        ShutterButton(size: m.shutter, metrics: m, locked: model.shutterLocked, reflection: model.camera.frontPreviewLayer, onTouch: { model.shutterHeld = $0; if $0 { Sounds.wake() } }) { model.shoot() }
                         HStack {
                             if panelOnLeft {
                                 ControlPanel(count: model.names.count,
@@ -116,24 +119,26 @@ struct ContentView: View {
                 // Bottom row: retake — Snap (centred between them, vertically
                 // centred on the slides) — post.
                 VStack(spacing: 0) { Spacer()
-                    // The Upload strip, directly above the bottom row: a
+                    // The Upload button, directly above the bottom row: a
                     // library photo instead of a shot, while the print is empty.
+                    // Square, the shutter's width; its label bold and 30 % up.
                     PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current) {
-                        UploadLabel(text: Strings.t(.upload, lang), metrics: m)
-                            .frame(width: geo.size.width / 2, height: m.uploadH)
+                        UploadLabel(text: Strings.t(.upload, lang), metrics: m, size: 12 * 1.3, weight: .bold)
+                            .frame(width: m.shutter, height: m.shutter)
                             .background(Theme.yellow.opacity(0.5))
-                            .clipShape(RoundedRectangle(cornerRadius: m.uploadH * 0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: m.shutter * 0.08))
                     }
+                    .simultaneousGesture(TapGesture().onEnded { Sounds.wake() })
                     .disabled(!model.canPick)
                     .opacity(model.canPick ? 1 : 0.4)
                     .padding(.bottom, m.pt(10))
                     HStack {
-                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.retake, lang)], fireSound: "zip") { model.retake() }
+                        SlideView(label: Strings.t(.retake, lang), colour: Theme.red, mirrored: true, enabled: model.controlsEnabled, metrics: m, sizingLabels: slideWords, fireSound: "zip") { model.retake() }
                         Spacer()
                         LogoView(size: m.logoSize)
                             .onTapGesture { model.demoPost() }   // the demo: the whole post experience, nothing sent
                         Spacer()
-                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: [Strings.t(.post, lang), Strings.t(.retry, lang)], fireSound: "eject") { model.post() }
+                        SlideView(label: Strings.t(model.phase == .failed ? .retry : .post, lang), colour: Theme.green, mirrored: false, enabled: model.controlsEnabled, metrics: m, sizingLabels: slideWords, fireSound: nil) { model.post() }
                     }
                     .padding(.horizontal, side).padding(.bottom, m.slideBottom)
                 }
@@ -161,14 +166,16 @@ struct ContentView: View {
     }
 }
 
-/// "Upload" in the slides' label type, dark on 50 % yellow — the strip's
-/// face and the print's badge; the caller sizes the rectangle.
+/// "Upload", dark on 50 % yellow — the button's face (bold, 30 % up) and
+/// the print's badge (the slides' label type); the caller sizes the rectangle.
 private struct UploadLabel: View {
     let text: String
     let metrics: Metrics
+    var size: CGFloat = 12
+    var weight: Font.Weight = .semibold
     var body: some View {
         Text(text)
-            .font(.system(size: metrics.pt(12), weight: .semibold))
+            .font(.system(size: metrics.pt(size), weight: weight))
             .foregroundStyle(.black.opacity(0.85))
     }
 }

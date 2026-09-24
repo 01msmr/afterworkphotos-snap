@@ -37,7 +37,7 @@ struct SlideView: View {
     let enabled: Bool
     let metrics: Metrics
     let sizingLabels: [String]
-    let fireSound: String
+    let fireSound: String?   // nil: the action plays its own (post times the eject to it)
     let onFire: () -> Void
     @State private var offset: CGFloat = 0
     @State private var lastNotch = 0
@@ -131,7 +131,7 @@ struct SlideView: View {
                         lastNotch = notch
                     }
                 }.onEnded { _ in
-                    if enabled && progress >= 0.85 { Sounds.play(fireSound); onFire() }
+                    if enabled && progress >= 0.85 { if let fireSound { Sounds.play(fireSound) }; onFire() }
                     lastNotch = 0
                     withAnimation(.spring(duration: 0.25)) { offset = 0 }
                 })
