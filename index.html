@@ -18,12 +18,12 @@
   main { display: grid; grid-template-columns: 326px 326px; grid-template-rows: auto auto 1fr;
     column-gap: 4rem; justify-content: center; }
   .shots { grid-area: 1 / 1 / 4 / 2; }
-  /* the header's middle level with the island's: 3 border + 7.2 bezel + 24 into the shot = 34.2 px;
-     the 1.5rem line's middle is 19.1 px down */
+  /* the header's ascender top (k, f, h) level with the island's top: 3 border + 7.2 bezel + 9.1 into the shot = 19.3 px;
+     the 1.5rem bold line's ascenders start 10.3 px down, so 9 px above it */
   /* the text's cap top level with the print's top: 3 border + 7.2 bezel + 45.3 into the shot = 55.5 px;
      the first line's cap top is 6.9 px down (Helvetica Neue, 17/25.5), so the text starts at 48.6 —
-     15 + 38.25 line + -4.65 */
-  h1 { grid-area: 1 / 2; font-size: 1.5rem; margin-top: 15px; margin-bottom: -4.65px; }
+     9 + 38.25 line + 1.35 */
+  h1 { grid-area: 1 / 2; font-size: 1.5rem; margin-top: 9px; margin-bottom: 1.35px; }
   .desc { grid-area: 2 / 2; color: var(--line); }
   /* iPhone 16 as a line drawing: mid grey outline, black body, buttons to scale */
   .phone { --w: 320px; position: relative; width: var(--w); padding: calc(var(--w) * .0225);
