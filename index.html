@@ -3,20 +3,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>snap.afterworkphotos</title>
+<meta name="color-scheme" content="dark light">
 <style>
-  html { background: #000; color: #ddd; font: 17px/1.5 "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif; }
-  body { max-width: 34rem; margin: 3rem auto; padding: 0 1.25rem; }
-  h1 { font-size: 2.2rem; font-weight: bold; text-align: right; margin: 0 0 2rem; white-space: nowrap; }
-  h1 b { color: #9db8ff; }
-  .shots { display: flex; justify-content: center; margin: 0 0 1.5rem; }
-  .shots img { display: block; width: 78%; max-width: 320px; height: auto; border-radius: 20px; }
-  a { color: #fff; }
+  :root { --bg: #000; --fg: #ddd; --accent: #9db8ff; --link: #fff; --line: #888; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #fff; --fg: #222; --accent: #3c62d8; --link: #000; }
+  }
+  html { background: var(--bg); color: var(--fg); font: 17px/1.5 "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif; }
+  body { max-width: 60rem; margin: 3rem auto; padding: 0 1.25rem; }
+  h1 { font-size: 2.2rem; font-weight: bold; text-align: center; margin: 0 0 2.5rem; white-space: nowrap; }
+  h1 b { color: var(--accent); }
+  main { display: flex; align-items: center; gap: 3rem; }
+  .shots { flex: 0 0 auto; }
+  /* iPhone 16 as a line drawing: mid grey outline, black body, buttons to scale */
+  .phone { --w: 320px; position: relative; width: var(--w); padding: calc(var(--w) * .0225);
+    background: #000; border: 3px solid var(--line); border-radius: calc(var(--w) * .168); }
+  .phone img { display: block; width: 100%; height: auto; border-radius: calc(var(--w) * .145); }
+  .phone i { position: absolute; width: 2.2px; background: var(--line); border: 2px solid var(--line); }
+  .phone .l { left: -7.2px; border-right: 0; border-radius: 3px 0 0 3px; }
+  .phone .r { right: -7.2px; border-left: 0; border-radius: 0 3px 3px 0; }
+  .phone .action { top: 17%; height: 5%; }
+  .phone .vol-up { top: 25.5%; height: 8.5%; }
+  .phone .vol-down { top: 36%; height: 8.5%; }
+  .phone .side { top: 28%; height: 13%; }
+  .desc { flex: 1 1 0; }
+  .desc p:first-child { margin-top: 0; }
+  @media (max-width: 44rem) {
+    main { flex-direction: column; gap: 1.5rem; }
+    .phone { --w: min(320px, 72vw); }
+  }
+  a { color: var(--link); }
 </style>
 <body>
   <h1><b>snap</b>.afterworkphotos</h1>
+  <main>
   <div class="shots">
+    <div class="phone">
+    <i class="l action"></i><i class="l vol-up"></i><i class="l vol-down"></i>
+    <i class="r side"></i>
     <img src="img/app-awp20.jpg" alt="the app, just posted: rails and ivy in the viewfinder; name, town and date on the LCD; Gesendet.">
+    </div>
   </div>
+  <div class="desc">
   <p>A personal camera, drawn as the back of one. One square in the viewfinder; press the
     chrome release — the photographer reflected in its face — and the shot fires as you let
     go. Or say <i>snap</i>. A small LCD shows what the photo will carry — a name suggested
@@ -25,5 +53,7 @@
   <p>The photo goes to the library and, with its name and place inside it, to
     <a href="https://afterworkphotos.com">afterworkphotos.com</a>, where it hangs within a minute.</p>
   <p>English and German, dark only. Not on the App Store.</p>
+  </div>
+  </main>
 </body>
 </html>
