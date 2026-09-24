@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>snap.afterworkphotos</title>
+<title>snap.afterworkphotos.com</title>
 <meta name="color-scheme" content="dark light">
 <style>
   :root { --bg: #000; --fg: #ddd; --accent: #9db8ff; --link: #fff; --line: #888; }
@@ -13,11 +13,12 @@
   body { max-width: 60rem; margin: 3rem auto; padding: 0 1.25rem; }
   h1 { font-size: 2.2rem; font-weight: bold; text-align: center; margin: 0 0 1.5rem; white-space: nowrap; }
   h1 b { color: var(--accent); }
+  h1 span { color: var(--line); }
   /* wide: two columns as wide as the phone, centred; the header over the text, level with the phone's top */
   main { display: grid; grid-template-columns: 326px 326px; grid-template-rows: auto auto 1fr;
     column-gap: 4rem; justify-content: center; }
   .shots { grid-area: 1 / 1 / 4 / 2; }
-  h1 { grid-area: 1 / 2; font-size: 1.8rem; }
+  h1 { grid-area: 1 / 2; font-size: 1.5rem; }
   .desc { grid-area: 2 / 2; color: var(--line); }
   /* iPhone 16 as a line drawing: mid grey outline, black body, buttons to scale */
   .phone { --w: 320px; position: relative; width: var(--w); padding: calc(var(--w) * .0225);
@@ -36,14 +37,14 @@
     main { grid-template-columns: 1fr; grid-template-rows: none; row-gap: 1.5rem; }
     .shots, h1, .desc { grid-area: auto; }
     .shots { justify-self: center; }
-    h1 { margin: 0 0 1rem; font-size: 2.2rem; }
+    h1 { margin: 0 0 1rem; font-size: min(2.2rem, 7vw); }
     .phone { --w: min(320px, 72vw); }
   }
   a { color: var(--link); }
 </style>
 <body>
   <main>
-  <h1><b>snap</b>.afterworkphotos</h1>
+  <h1><b>snap</b>.afterworkphotos<span>.com</span></h1>
   <div class="shots">
     <div class="phone">
     <i class="l action"></i><i class="l vol-up"></i><i class="l vol-down"></i>
