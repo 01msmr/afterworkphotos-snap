@@ -1,4 +1,5 @@
 # afterworksnap
+> Governed by **CLAUDE MASTER** (`../CLAUDE.md`). Rules here extend it; they do not override it.
 
 Personal iOS camera app. Square photos, saved to the photo library as
 favorites and sent to snap.afterworkphotos.com, which puts them into the
