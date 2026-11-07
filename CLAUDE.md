@@ -67,7 +67,7 @@ unreachable. The camera back: leather body, the matte square print high on
 the screen (no title band), LCD beneath it, the chrome release centred
 below with the drum panel beside it, retake · `Snap` logo · post at the
 bottom, the yellow `Upload` button (square, 80 % of the shutter's width) directly above that row (a library photo
-instead of a shot; badged on the print on screen only, uploaded, never
+instead of a shot; badged on the print on screen only, uploaded, its existing asset favourited after the send (Upload button only), never
 saved again). Vertical only, iPhone and iPad at the same point sizes; home
 screen name `Snap` (Info.plist AND the pbxproj build setting — the
 setting overrides the plist).

@@ -24,4 +24,17 @@ enum PhotoSaver {
             }
         } catch { throw SaveError.failed }
     }
+
+    /// A photo picked from the library is already there: it is only marked
+    /// as a favourite. Nothing is added; an asset the app may not see (limited
+    /// access) or a refused change is silently left as it was.
+    static func favorite(assetID: String) async {
+        let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        guard status == .authorized || status == .limited else { return }
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: [assetID], options: nil)
+        guard let asset = assets.firstObject else { return }
+        try? await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest(for: asset).isFavorite = true
+        }
+    }
 }

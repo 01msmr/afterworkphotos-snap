@@ -40,6 +40,7 @@ final class AppModel {
     private var placeTask: Task<Void, Never>?
     private var fetchID = 0
     private var saved = false               // already in the library — a retry must not add it twice
+    private var pickedAssetID: String?      // the library asset behind an Upload-button photo — favourited once it is sent
     private var placeDone = false           // the place lookup for this shot has finished (or there is none)
     private var previewTask: Task<Void, Never>?   // decodes `preview`; cancelled on retake/post-success
 #if DEBUG
@@ -124,8 +125,10 @@ final class AppModel {
     /// A photo picked from the library takes the capture's place: the
     /// same naming, place and date, the same post — its date and place
     /// come from its own EXIF. It is already in the library, so post
-    /// only uploads it.
-    func usePicked(_ data: Data) {
+    /// only uploads it — and, when the picker gave its identifier, marks
+    /// that asset as a favourite once it is sent ("Share with Snap" hands
+    /// over the file only, so there it stays as it is).
+    func usePicked(_ data: Data, assetID: String? = nil) {
         guard canPick else { return }
         sign = nil
         voiceTrigger.stop(keepSession: true)
@@ -133,6 +136,7 @@ final class AppModel {
         begin(with: data, fix: GPSDictionary.coordinate(in: data))
         picked = true
         saved = true
+        pickedAssetID = assetID
     }
 
     /// "Share with Snap": the extension left the photo on the handoff
@@ -156,6 +160,7 @@ final class AppModel {
         names = []; nameIndex = 0; showIndex = false
         saved = false
         picked = false
+        pickedAssetID = nil
         phase = .naming
         placeTask?.cancel()
         if let fix {
@@ -325,6 +330,7 @@ final class AppModel {
                     saved = true
                 }
                 try await Uploader.send(square)
+                if let id = pickedAssetID { await PhotoSaver.favorite(assetID: id); pickedAssetID = nil }
                 phase = .sent
                 sign = Strings.t(.postSent, language)
                 // Sounds.play("thup")   // retired 2026-09-22 — the post ends on the sheet sound

@@ -124,7 +124,8 @@ struct ContentView: View {
                     // The Upload button, directly above the bottom row: a
                     // library photo instead of a shot, while the print is empty.
                     // Square, 80 % of the shutter's width; its label bold and 30 % up.
-                    PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current) {
+                    // photoLibrary: .shared() — only then does the item carry the asset's identifier.
+                    PhotosPicker(selection: $pickedItem, matching: .images, preferredItemEncoding: .current, photoLibrary: .shared()) {
                         UploadLabel(text: Strings.t(.upload, lang), metrics: m, size: 12 * 1.3, weight: .bold)
                             .frame(width: m.shutter * 0.8, height: m.shutter * 0.8)
                             .background(Theme.yellow.opacity(0.5))
@@ -155,7 +156,7 @@ struct ContentView: View {
             Task {
                 // .current encoding: the original file, EXIF and GPS intact.
                 if let data = try? await item.loadTransferable(type: Data.self) {
-                    model.usePicked(data)
+                    model.usePicked(data, assetID: item.itemIdentifier)
                 } else {
                     Sounds.play("knock")   // the photo didn't come
                 }
